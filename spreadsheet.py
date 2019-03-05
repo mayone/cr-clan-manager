@@ -28,6 +28,7 @@ class RecordGenre(IntEnum):
 class Sheet():
 	def __init__(self, index=0):
 		self.__sheet = self.__open_sheet(index)
+		self.__crapi = crapi.CRAPI()
 
 	def __open_sheet(self, index):
 		"""Open worksheet.
@@ -72,7 +73,7 @@ class Sheet():
 	def update_trophies(self):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
-		members = crapi.get_members()
+		members = self.__crapi.get_members()
 		updated = False
 
 		print("Updating trophies...")
@@ -112,7 +113,7 @@ class Sheet():
 				except Exception as e:
 					continue
 
-		warlog = crapi.get_warlog()
+		warlog = self.__crapi.get_warlog()
 		warlog_unrecorded_offset = -1
 
 		# Set index to the unrecorded war in warlog
@@ -202,7 +203,7 @@ class Sheet():
 	def update_donations(self, date=None, delay=None):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
-		members = crapi.get_members()
+		members = self.__crapi.get_members()
 
 		header_cells = sheet.get_row(1, returnas='cells')
 
