@@ -72,9 +72,9 @@ def show_handler(cmd):
 # Help message of command "update"
 update_cmd_help = (
 	"Update (update)\n"
-	"    trophy        Update trophies of members\n"
-	"    warlog        Update warlog\n"
-	"    donation      Update donations of members\n")
+	"    trophy                Update trophies of members\n"
+	"    warlog                Update warlog\n"
+	"    donation [date]       Update donations of members (specified date)\n")
 
 def update_handler(cmd):
 	if len(cmd) == 0:
