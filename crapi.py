@@ -41,7 +41,7 @@ class CRAPI():
 			data = resp.json()
 			return data
 		else:
-			print("Error: " + resp.status_code)
+			print("Error: {0}".format(resp.status_code))
 			return None
 
 	def get_members(self):
@@ -53,7 +53,11 @@ class CRAPI():
 		    Use tag as key, member as value.
 		"""
 		query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
-		members = self.__send_req(query)['items']
+		try:
+			members = self.__send_req(query)['items']
+		except Exception as e:
+			print("Unable to retrieve member list")
+			return None
 		hash_members = {}
 
 		for member in members:
@@ -66,7 +70,11 @@ class CRAPI():
 		return hash_members
 
 	def show_members(self):
-		members = list(self.get_members().values())
+		try:
+			members = list(self.get_members().values())
+		except Exception as e:
+			print("No member to display")
+			return
 		print("部落成員，共 {0} 名".format(len(members)))
 		print("{0}{1}{2}{3}".format(
 					utils.align("排名", length=6),
