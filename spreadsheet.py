@@ -120,7 +120,7 @@ class Sheet():
 		for i in range(len(warlog)):		
 			war = warlog[i]
 			date = war['createdDate'].split('T')[0]
-			if date > latest_updated_date:
+			if date >= latest_updated_date:
 				warlog_unrecorded_offset = i
 			else:
 				break
