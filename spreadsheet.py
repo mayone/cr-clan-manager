@@ -103,10 +103,15 @@ class Sheet():
 		sheet = self.__sheet
 		header_cells = sheet.get_row(1, returnas='cells')
 
-		# Set index to latest updated in sheet
+		# Search and set latest updated (genre, date, col_offset)
+		latest_updated_genre = RecordGenre.UNKNOWN
 		for header_cell in reversed(header_cells):
 			if header_cell.note != None:
 				try:
+					if header_cell.note.split()[0] == "發起日":
+						latest_updated_genre = RecordGenre.WAR
+					elif header_cell.note.split()[0] == "統計日":
+						latest_updated_genre = RecordGenre.DONATE
 					latest_updated_date = header_cell.note.split()[1]
 					latest_updated_col_offset = sheet.cols - header_cell.col
 					break
@@ -120,7 +125,10 @@ class Sheet():
 		for i in range(len(warlog)):		
 			war = warlog[i]
 			date = war['createdDate'].split('T')[0]
-			if date >= latest_updated_date:
+			if date > latest_updated_date:
+				warlog_unrecorded_offset = i
+			elif date == latest_updated_date and \
+				latest_updated_genre == RecordGenre.DONATE:
 				warlog_unrecorded_offset = i
 			else:
 				break
