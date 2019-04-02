@@ -62,7 +62,7 @@ def get_width(string):
 		#if re.match(combining_char, string[i]):
 		if unicodedata.combining(string[i]):
 			if i == 0:
-				# If combining character in beginning of the line alone
+				# If combining character is at beginning of the line alone
 				ch_width = 1
 			else:
 				ch_width = 0

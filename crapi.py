@@ -49,6 +49,22 @@ class CRAPI():
 
 		Returns
 		-------
+		members : list
+		"""
+		query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
+		try:
+			members = self.__send_req(query)['items']
+		except Exception as e:
+			print("Unable to retrieve member list")
+			return None
+
+		return members
+
+	def get_members_dic(self):
+		"""Get members of the clan.
+
+		Returns
+		-------
 		members : dictionary
 		    Use tag as key, member as value.
 		"""
@@ -71,7 +87,7 @@ class CRAPI():
 
 	def show_members(self):
 		try:
-			members = list(self.get_members().values())
+			members = self.get_members()
 		except Exception as e:
 			print("No member to display")
 			return
@@ -105,7 +121,7 @@ class CRAPI():
 						utils.align(role, length=6),
 						utils.align(trophies, length=4)))
 
-	def get_warlog(self):
+	def get_warlog(self, limit=0):
 		"""Get warlog of the clan.
 
 		Returns
@@ -113,16 +129,16 @@ class CRAPI():
 		warlog : list
 		    Order: later to former.
 		"""
-		query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog"
+		if limit > 0:
+			query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog" + "?limit={0}".format(limit)
+		else:
+			query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog"
 		warlog = self.__send_req(query)['items']
 
 		return warlog
 
-	def show_warlog(self, count=0):
-		warlog = self.get_warlog()
-		if count > 0:
-			# If count is specified, only show that amount of war
-			warlog = warlog[0:count]
+	def show_warlog(self, limit=0):
+		warlog = self.get_warlog(limit)
 
 		print("部落戰紀錄 {0} ~ {1}，共 {2} 筆".format(
 			warlog[len(warlog)-1]['createdDate'].split('T')[0],

@@ -11,6 +11,7 @@ import utils
 
 from enum import IntEnum, auto
 
+
 pp = pprint.PrettyPrinter()
 
 class Color():
@@ -73,7 +74,7 @@ class Sheet():
 	def update_trophies(self):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
-		members = self.__crapi.get_members()
+		members = self.__crapi.get_members_dic()
 		updated = False
 
 		print("Updating trophies...")
@@ -88,7 +89,7 @@ class Sheet():
 			trophy_cell = tag_cell.neighbour('right')
 			if trophy_cell.value < str(member['bestTrophies']):
 				print("Update player {0} trophies: {1} -> {2}".format(
-						align(member['name'], 32),
+						utils.align(member['name'], length=32),
 						trophy_cell.value, member['bestTrophies']))
 				trophy_cell.value = str(member['bestTrophies'])
 				updated = True
@@ -211,7 +212,7 @@ class Sheet():
 	def update_donations(self, date=None, delay=None):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
-		members = self.__crapi.get_members()
+		members = self.__crapi.get_members_dic()
 
 		header_cells = sheet.get_row(1, returnas='cells')
 
