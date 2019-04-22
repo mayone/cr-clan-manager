@@ -11,7 +11,7 @@ except ImportError:
 	from urllib.parse import quote_plus
 
 import utils
-
+from datetime import datetime, timezone, timedelta
 
 clan_tag = "#8V8CCV"
 
@@ -91,13 +91,17 @@ class CRAPI():
 		except Exception as e:
 			print("No member to display")
 			return
+
+		now = datetime.now(timezone.utc)
+
 		print("部落成員，共 {0} 名".format(len(members)))
-		print("{0}{1}{2}{3}".format(
+		print("{0}{1}{2}{3}{4}".format(
 					utils.align("排名", length=6),
 					utils.align("名字", length=32),
 					utils.align("職位", length=6),
-					utils.align("獎盃", length=4)))
-		print("=" * 48)
+					utils.align("獎盃", length=6),
+					utils.align("上線", length=6, dir='r')))
+		print("=" * 56)
 		for member in members:
 			tag = member['tag']
 			name = member['name']
@@ -112,14 +116,28 @@ class CRAPI():
 				role = "成員"
 			else:
 				role = role
+			last_seen = member['lastSeen']
+			last_seen_date = datetime.strptime(last_seen, "%Y%m%dT%H%M%S.%fZ").replace(tzinfo=timezone.utc)
+			offline = now - last_seen_date
+			if offline > timedelta(weeks=1):
+				last_seen = "{0} 週".format(int(offline.days/7))
+			elif offline > timedelta(days=1):
+				last_seen = "{0} 天".format(offline.days)
+			elif offline > timedelta(hours=1):
+				last_seen = "{0} 時".format(int(offline.seconds/3600))
+			elif offline > timedelta(minutes=1):
+				last_seen = "{0} 分".format(int(offline.seconds/60))
+			else:
+				last_seen = "{0} 秒".format(offline.seconds)
 			clan_rank = str(member['clanRank'])
 			trophies = str(member['trophies'])
 
-			print("{0}{1}{2}{3}".format(
+			print("{0}{1}{2}{3}{4}".format(
 						utils.align(clan_rank, length=6),
 						utils.align(name, length=32),
 						utils.align(role, length=6),
-						utils.align(trophies, length=4)))
+						utils.align(trophies, length=6),
+						utils.align(last_seen, length=6, dir='r')))
 
 	def get_warlog(self, limit=0):
 		"""Get warlog of the clan.
@@ -144,7 +162,7 @@ class CRAPI():
 			warlog[len(warlog)-1]['createdDate'].split('T')[0],
 			warlog[0]['createdDate'].split('T')[0],
 			len(warlog)))
-		print("=" * 48)
+		print("=" * 56)
 		for war in reversed(warlog):
 			date = war['createdDate'].split('T')[0]
 			participants = war['participants']
@@ -163,4 +181,4 @@ class CRAPI():
 				print("{0}".format(utils.align(p['name'], length=20)), end='')
 				i += 1
 			print("")
-			print("=" * 48)
+			print("=" * 56)
