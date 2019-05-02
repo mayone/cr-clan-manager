@@ -58,14 +58,14 @@ class Sheet():
 
 		return tag_cells
 
-	def __sort_by_trophies(self):
+	def __sort_by_trophies(self, last_updated_row_index=51):
 		sheet = self.__sheet
 
 		print("Sorting by trophies...")
 		# basecolumnindex starts from 0
 		sheet.sort_range(
 			start=(2, 1),
-			end=(51, sheet.cols),
+			end=(last_updated_row_index, sheet.cols),
 			basecolumnindex=sheet.find('最高盃數')[0].col - 1,
 			sortorder='DESCENDING')
 
@@ -75,7 +75,7 @@ class Sheet():
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
-		updated = False
+		last_updated_row_index = 0
 
 		print("Updating trophies...")
 
@@ -92,10 +92,10 @@ class Sheet():
 						utils.align(member['name'], length=32),
 						trophy_cell.value, member['bestTrophies']))
 				trophy_cell.value = str(member['bestTrophies'])
-				updated = True
+				last_updated_row_index = trophy_cell.row
 
-		if updated:
-			self.__sort_by_trophies()
+		if last_updated_row_index > 0:
+			self.__sort_by_trophies(last_updated_row_index)
 			print("Trophies updated")
 		else:
 			print("Trophies are already up to date")
