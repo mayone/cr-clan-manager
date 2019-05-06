@@ -11,7 +11,7 @@ except ImportError:
 	from urllib.parse import quote_plus
 
 import utils
-from datetime import datetime, timezone, timedelta
+
 
 clan_tag = "#8V8CCV"
 
@@ -92,7 +92,7 @@ class CRAPI():
 			print("No member to display")
 			return
 
-		now = datetime.now(timezone.utc)
+		now = utils.get_now()
 
 		print("部落成員，共 {0} 名".format(len(members)))
 		print("{0}{1}{2}{3}{4}".format(
@@ -117,18 +117,9 @@ class CRAPI():
 			else:
 				role = role
 			last_seen = member['lastSeen']
-			last_seen_date = datetime.strptime(last_seen, "%Y%m%dT%H%M%S.%fZ").replace(tzinfo=timezone.utc)
+			last_seen_date = utils.datetime_from_str(last_seen)
 			offline = now - last_seen_date
-			if offline > timedelta(weeks=1):
-				last_seen = "{0} 週".format(int(offline.days/7))
-			elif offline > timedelta(days=1):
-				last_seen = "{0} 天".format(offline.days)
-			elif offline > timedelta(hours=1):
-				last_seen = "{0} 時".format(int(offline.seconds/3600))
-			elif offline > timedelta(minutes=1):
-				last_seen = "{0} 分".format(int(offline.seconds/60))
-			else:
-				last_seen = "{0} 秒".format(offline.seconds)
+			last_seen = utils.get_rounded_str(offline)
 			clan_rank = str(member['clanRank'])
 			trophies = str(member['trophies'])
 

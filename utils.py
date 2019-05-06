@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 
+#############
+# Alignment #
+#############
+
 from sys import platform as _platform
 import unicodedata
 #import re
+
 
 def is_wide(ch):
 	"""Check is the character wide or not.
@@ -142,3 +147,40 @@ def align_test():
 				align(u"I\u0304\u0304"),
 				align(u"am\u0304\u0304"),
 				align("W\u0304ayne\u0304!")))
+
+
+############
+# Datetime #
+############
+
+from datetime import datetime, timezone, timedelta
+
+
+# ISO 8601 compact format
+iso8061comp_fmt = "%Y%m%dT%H%M%S.%fZ"
+
+def get_now():
+	now = datetime.now(timezone.utc)
+	return now
+
+def get_now_str(fmt=iso8061comp_fmt):
+	now_str = datetime.now(timezone.utc).strftime(fmt)
+	return now_str
+
+def datetime_from_str(iso8061comp_str):
+	dt = datetime.strptime(iso8061comp_str, iso8061comp_fmt).replace(tzinfo=timezone.utc)
+	return dt
+
+def get_rounded_str(tdelta):
+	if tdelta > timedelta(weeks=1):
+		rounded_str = "{0} 週".format(int(tdelta.days/7))
+	elif tdelta > timedelta(days=1):
+		rounded_str = "{0} 天".format(tdelta.days)
+	elif tdelta > timedelta(hours=1):
+		rounded_str = "{0} 時".format(int(tdelta.seconds/3600))
+	elif tdelta > timedelta(minutes=1):
+		rounded_str = "{0} 分".format(int(tdelta.seconds/60))
+	else:
+		rounded_str = "{0} 秒".format(tdelta.seconds)
+
+	return rounded_str
