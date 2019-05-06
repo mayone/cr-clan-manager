@@ -160,16 +160,27 @@ from datetime import datetime, timezone, timedelta
 iso8061comp_fmt = "%Y%m%dT%H%M%S.%fZ"
 
 def get_now():
+	now = datetime.now()
+	return now
+
+def get_utcnow():
 	now = datetime.now(timezone.utc)
 	return now
 
-def get_now_str(fmt=iso8061comp_fmt):
+def get_utcnow_str(fmt=iso8061comp_fmt):
 	now_str = datetime.now(timezone.utc).strftime(fmt)
 	return now_str
 
 def datetime_from_str(iso8061comp_str):
 	dt = datetime.strptime(iso8061comp_str, iso8061comp_fmt).replace(tzinfo=timezone.utc)
 	return dt
+
+def utc_shift_tz(dt, hours=8):
+	dt = dt.astimezone(timezone(offset = timedelta(hours = hours))).replace(tzinfo=None)
+	return dt
+
+def get_date_str(dt):
+	return dt.strftime("%Y%m%d")
 
 def get_rounded_str(tdelta):
 	if tdelta > timedelta(weeks=1):

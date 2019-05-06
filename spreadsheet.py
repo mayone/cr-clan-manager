@@ -125,7 +125,9 @@ class Sheet():
 		# Set index to the unrecorded war in warlog
 		for i in range(len(warlog)):		
 			war = warlog[i]
-			date = war['createdDate'].split('T')[0]
+			date = utils.get_date_str(
+					utils.utc_shift_tz(
+						utils.datetime_from_str(war['createdDate'])))
 			if date > latest_updated_date:
 				warlog_unrecorded_offset = i
 			elif date == latest_updated_date and \
@@ -231,13 +233,16 @@ class Sheet():
 				except Exception as e:
 					continue
 
-		now = datetime.datetime.now()
+		date = utils.get_date_str(
+					utils.utc_shift_tz(
+						utils.datetime_from_str(war['createdDate'])))
 		if date:
-			record_date = datetime.datetime(now.year, int(date.split('/')[0]), int(date.split('/')[1]))
-			full_date = record_date.strftime("%Y%m%d")
+			record_dt = datetime.datetime(now.year, int(date.split('/')[0]), int(date.split('/')[1]))
+			full_date = utils.get_date_str(record_dt)
 		else:
+			now = utils.get_now()
 			date = now.strftime("%m/%d")
-			full_date = now.strftime("%Y%m%d")
+			full_date = utils.get_date_str(now)
 
 		if latest_updated_date == full_date and \
 			latest_updated_genre == RecordGenre.DONATE:

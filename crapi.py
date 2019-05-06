@@ -92,7 +92,7 @@ class CRAPI():
 			print("No member to display")
 			return
 
-		now = utils.get_now()
+		now = utils.get_utcnow()
 
 		print("部落成員，共 {0} 名".format(len(members)))
 		print("{0}{1}{2}{3}{4}".format(
@@ -148,20 +148,28 @@ class CRAPI():
 
 	def show_warlog(self, limit=0):
 		warlog = self.get_warlog(limit)
+		early_date_str = utils.get_date_str(
+					utils.utc_shift_tz(
+						utils.datetime_from_str(warlog[len(warlog)-1]['createdDate'])))
+		late_date_str = utils.get_date_str(
+					utils.utc_shift_tz(
+						utils.datetime_from_str(warlog[0]['createdDate'])))
 
 		print("部落戰紀錄 {0} ~ {1}，共 {2} 筆".format(
-			warlog[len(warlog)-1]['createdDate'].split('T')[0],
-			warlog[0]['createdDate'].split('T')[0],
+			early_date_str,
+			late_date_str,
 			len(warlog)))
 		print("=" * 56)
 		for war in reversed(warlog):
-			date = war['createdDate'].split('T')[0]
+			date_str = utils.get_date_str(
+					utils.utc_shift_tz(
+						utils.datetime_from_str(war['createdDate'])))
 			participants = war['participants']
 			standings = war['standings']
 			for standing in standings:
 				if standing['clan']['tag'] == clan_tag:
 					trophy_change = standing['trophyChange']
-			print("部落戰 {0}".format(date))
+			print("部落戰 {0}".format(date_str))
 			print("獎盃： {0}".format(trophy_change))
 			print("參加人數： {0}".format(len(participants)))
 			print("名單：", end='')
