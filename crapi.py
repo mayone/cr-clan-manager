@@ -149,10 +149,10 @@ class CRAPI():
 	def show_warlog(self, limit=0):
 		warlog = self.get_warlog(limit)
 		early_date_str = utils.get_date_str(
-					utils.utc_shift_tz(
+					utils.utc_to_local(
 						utils.datetime_from_str(warlog[len(warlog)-1]['createdDate'])))
 		late_date_str = utils.get_date_str(
-					utils.utc_shift_tz(
+					utils.utc_to_local(
 						utils.datetime_from_str(warlog[0]['createdDate'])))
 
 		print("部落戰紀錄 {0} ~ {1}，共 {2} 筆".format(
@@ -162,7 +162,7 @@ class CRAPI():
 		print("=" * 56)
 		for war in reversed(warlog):
 			date_str = utils.get_date_str(
-					utils.utc_shift_tz(
+					utils.utc_to_local(
 						utils.datetime_from_str(war['createdDate'])))
 			participants = war['participants']
 			standings = war['standings']

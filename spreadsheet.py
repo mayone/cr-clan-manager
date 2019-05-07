@@ -126,7 +126,7 @@ class Sheet():
 		for i in range(len(warlog)):		
 			war = warlog[i]
 			date = utils.get_date_str(
-					utils.utc_shift_tz(
+					utils.utc_to_local(
 						utils.datetime_from_str(war['createdDate'])))
 			if date > latest_updated_date:
 				warlog_unrecorded_offset = i
@@ -234,7 +234,7 @@ class Sheet():
 					continue
 
 		date = utils.get_date_str(
-					utils.utc_shift_tz(
+					utils.utc_to_local(
 						utils.datetime_from_str(war['createdDate'])))
 		if date:
 			record_dt = datetime.datetime(now.year, int(date.split('/')[0]), int(date.split('/')[1]))

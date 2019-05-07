@@ -153,6 +153,7 @@ def align_test():
 # Datetime #
 ############
 
+import time
 from datetime import datetime, timezone, timedelta
 
 
@@ -174,6 +175,11 @@ def get_utcnow_str(fmt=iso8061comp_fmt):
 def datetime_from_str(iso8061comp_str):
 	dt = datetime.strptime(iso8061comp_str, iso8061comp_fmt).replace(tzinfo=timezone.utc)
 	return dt
+
+def utc_to_local(dt):
+	epoch = time.mktime(dt.timetuple())
+	offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
+	return dt.replace(tzinfo=None) + offset
 
 def utc_shift_tz(dt, hours=8):
 	dt = dt.astimezone(timezone(offset = timedelta(hours = hours))).replace(tzinfo=None)
