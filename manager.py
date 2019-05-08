@@ -72,6 +72,7 @@ def show_handler(cmd):
 # Help message of command "update"
 update_cmd_help = (
 	"Update (update)\n"
+	"    members               Update members of clan\n"
 	"    trophy                Update trophies of members\n"
 	"    warlog                Update warlog\n"
 	"    donation [date]       Update donations of members (specified date)\n")
@@ -82,7 +83,10 @@ def update_handler(cmd):
 		return Status.FAIL
 
 	tok = cmd.pop(0)
-	if tok == "trophy":
+	if tok == "members":
+		sheet.update_members()
+		return Status.OK
+	elif tok == "trophy":
 		sheet.update_trophies()
 		return Status.OK
 	elif tok == "warlog":
@@ -102,7 +106,7 @@ def update_handler(cmd):
 
 if __name__ == "__main__":
 	# Open Google Sheet
-	sheet = spreadsheet.Sheet()
+	sheet = spreadsheet.Sheet(index=1)
 	# Setup CR API
 	crapi = crapi.CRAPI()
 

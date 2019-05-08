@@ -47,6 +47,10 @@ class Sheet():
 
 		return sheet
 
+	def __set_frozen_cols(self, num_cols):
+		sheet = self.__sheet
+		sheet.frozen_cols = num_cols
+
 	def __get_tag_cells(self):
 		sheet = self.__sheet
 		start = sheet.find('標籤')[0].neighbour('bottom')
@@ -71,6 +75,56 @@ class Sheet():
 
 		print("Sorted by trophies")
 
+	def update_members(self):
+		sheet = self.__sheet
+		tag_cells = self.__get_tag_cells()
+		members = self.__crapi.get_members_dic()
+
+		sheet_tags = []
+		insertable_row_index = tag_cells[len(tag_cells)-1].row + 1
+		last_inserted_row_index = 0
+
+		# Put none exist members in list
+		member_to_remove = []
+		for tag_cell in tag_cells:
+			tag = tag_cell.value
+			try:
+				member = members[tag]
+			except Exception as e:
+				name = tag_cell.neighbour('left').value
+				member_to_remove.append((name, tag_cell.row))
+				continue
+			sheet_tags.append(tag)
+
+		# Remove none exist members in reversed order
+		for member in reversed(member_to_remove):
+			name = member[0]
+			row_index = member[1]
+			# Insert empty row in the bottom
+			sheet.insert_rows(tag_cells[len(tag_cells)-1].row)
+			sheet.delete_rows(row_index)
+			print("Member: {0} is removed".format(
+					utils.align(name, length=32)))
+			insertable_row_index -= 1
+
+		# Add new members
+		tags = members.keys()
+		for tag in tags:
+			if tag not in sheet_tags:
+				member = members[tag]
+				row_to_fill = sheet.get_row(insertable_row_index, returnas='cells')
+				row_to_fill[0].value = member['name']
+				row_to_fill[1].value = tag
+				row_to_fill[2].value = member['bestTrophies']
+				row_to_fill[3].value = "0"
+				print("Member: {0} is added".format(
+					utils.align(member['name'], length=32)))
+				last_inserted_row_index = insertable_row_index
+				insertable_row_index += 1
+
+		if last_inserted_row_index > 0:
+			self.__sort_by_trophies(last_inserted_row_index)
+
 	def update_trophies(self):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
@@ -84,11 +138,11 @@ class Sheet():
 			try:
 				member = members[tag]
 			except Exception as e:
-				print("Warning: player tag " + tag + " do not exists")
+				print("Warning: member tag " + tag + " do not exists")
 				continue
 			trophy_cell = tag_cell.neighbour('right')
 			if trophy_cell.value < str(member['bestTrophies']):
-				print("Update player {0} trophies: {1} -> {2}".format(
+				print("Update member {0} trophies: {1} -> {2}".format(
 						utils.align(member['name'], length=32),
 						trophy_cell.value, member['bestTrophies']))
 				trophy_cell.value = str(member['bestTrophies'])
@@ -189,7 +243,7 @@ class Sheet():
 			if row_index:
 				cell = sheet.cell((row_index, col_index))
 			else:
-				print("Warning: player tag " + tag + " do not exists")
+				print("Warning: member tag " + tag + " do not exists")
 				continue
 
 			warday_played = p['battlesPlayed']
@@ -265,13 +319,13 @@ class Sheet():
 
 		print("Updating donations " + date)
 
-		# Update donations of each player
+		# Update donations of each member
 		for tag_cell in tqdm(tag_cells):
 			tag = tag_cell.value
 			try:
 				member = members[tag]
 			except Exception as e:
-				print("Warning: player tag " + tag + " do not exists")
+				print("Warning: member tag " + tag + " do not exists")
 				continue
 
 			row_index = tag_cell.row
