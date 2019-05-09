@@ -15,6 +15,7 @@ class Status(IntEnum):
 # Help message of commands
 cmd_help = (
 	"Commands\n"
+	"    init          Initialize (setup) the sheet\n"
 	"    update        Update content of sheet\n"
 	"    show          Show information of clan\n"
 	"    quit          Quit\n")
@@ -25,14 +26,17 @@ def command_handler(cmd):
 		return Status.FAIL
 
 	tok = cmd.pop(0)
-	if tok == "quit":
-		return Status.QUIT
-	elif tok == "show":
-		show_handler(cmd)
+	if tok == "init":
+		sheet.init()
 		return Status.OK
 	elif tok == "update":
 		update_handler(cmd)
 		return Status.OK
+	elif tok == "show":
+		show_handler(cmd)
+		return Status.OK
+	elif tok == "quit":
+		return Status.QUIT
 	elif tok == "test":
 		return Status.OK
 	else:
@@ -106,7 +110,7 @@ def update_handler(cmd):
 
 if __name__ == "__main__":
 	# Open Google Sheet
-	sheet = spreadsheet.Sheet(index=1)
+	sheet = spreadsheet.Sheet()
 	# Setup CR API
 	crapi = crapi.CRAPI()
 

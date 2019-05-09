@@ -17,9 +17,14 @@ pp = pprint.PrettyPrinter()
 class Color():
 	# In tuple (red, green, blue, alpha)
 	white = (0, 0, 0, 0)
+	grey = (0.7382812, 0.7382812, 0.7382812, 0)
 	red = (1, 0, 0, 0)
+	blue = (0, 1, 1, 0)
+	orange = (0.9647059, 0.69803923, 0.41960785, 0)
 	skin = (1, 0.8980392, 0.6, 0)
 	pink = (0.95686275, 0.8, 0.8, 0)
+	d_green = (0.5764706, 0.76862746, 0.49019608, 0)
+	d_blue = (0.6431373, 0.7607843, 0.95686275, 0)
 
 class RecordGenre(IntEnum):
 	UNKNOWN = auto()
@@ -75,6 +80,27 @@ class Sheet():
 
 		print("Sorted by trophies")
 
+	def init(self):
+		sheet = self.__sheet
+		header_cells = sheet.get_row(1, returnas='cells')
+		members = self.__crapi.get_members_dic().values()
+
+		# Setup headers
+		for header_cell in header_cells:
+			header_cell.color = Color.grey
+		header_cells[0].value = "帳號"
+		header_cells[1].value = "標籤"
+		header_cells[2].value = "最高盃數"
+		header_cells[3].value = "職位"
+		header_cells[3].note = "首領 3\n副首 2\n長老 1\n成員 0"
+		sheet.adjust_column_width(start=0, pixel_size=120)
+		sheet.adjust_column_width(start=2, pixel_size=60)
+		sheet.adjust_column_width(start=3, pixel_size=60)
+		self.__set_frozen_cols(4)
+
+		# Add members
+		self.update_members()
+
 	def update_members(self):
 		sheet = self.__sheet
 		tag_cells = self.__get_tag_cells()
@@ -116,7 +142,20 @@ class Sheet():
 				row_to_fill[0].value = member['name']
 				row_to_fill[1].value = tag
 				row_to_fill[2].value = member['bestTrophies']
-				row_to_fill[3].value = "0"
+				role = member['role']
+				if role == "leader":
+					row_to_fill[3].value = "3"
+					row_to_fill[3].color = Color.orange
+				elif role == "coLeader":
+					row_to_fill[3].value = "2"
+					row_to_fill[3].color = Color.d_blue
+				elif role == "elder":
+					row_to_fill[3].value = "1"
+					row_to_fill[3].color = Color.d_green
+				elif role == "member":
+					row_to_fill[3].value = "0"
+				else:
+					row_to_fill[3].value = "0"
 				print("Member: {0} is added".format(
 					utils.align(member['name'], length=32)))
 				last_inserted_row_index = insertable_row_index
@@ -172,6 +211,10 @@ class Sheet():
 					break
 				except Exception as e:
 					continue
+
+		if latest_updated_genre == RecordGenre.UNKNOWN:
+			latest_updated_col_offset = sheet.cols - 4
+			latest_updated_date = "00000000"
 
 		warlog = self.__crapi.get_warlog()
 		warlog_unrecorded_offset = -1
