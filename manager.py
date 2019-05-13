@@ -43,6 +43,7 @@ def command_handler(cmd):
 		print(cmd_help)
 		return Status.FAIL
 
+# Help message of command "show"
 show_cmd_help = (
 	"Show (show)\n"
 	"    members               Show all clan members\n"

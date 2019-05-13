@@ -15,7 +15,7 @@ import utils
 
 clan_tag = "#8V8CCV"
 
-class CRAPI():
+class CRAPI(metaclass=utils.Singleton):
 	def __init__(self):
 		with open('crapi.json') as api_file:
 			api = json.load(api_file)
