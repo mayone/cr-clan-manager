@@ -330,14 +330,11 @@ class Sheet():
 				except Exception as e:
 					continue
 
-		date = utils.get_date_str(
-					utils.utc_to_local(
-						utils.datetime_from_str(war['createdDate'])))
+		now = utils.get_now()
 		if date:
 			record_dt = datetime.datetime(now.year, int(date.split('/')[0]), int(date.split('/')[1]))
 			full_date = utils.get_date_str(record_dt)
 		else:
-			now = utils.get_now()
 			date = now.strftime("%m/%d")
 			full_date = utils.get_date_str(now)
 
