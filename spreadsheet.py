@@ -306,7 +306,7 @@ class Sheet():
 			if warday_played == 0 or p['collectionDayBattlesPlayed'] < 3:
 				cell.color = Color.red
 				if (p['collectionDayBattlesPlayed'] < 3):
-					cell.note = "準備日({0}/3)".format(p['collectionDayBattlesPlayed'])
+					cell.note = "收集日({0}/3)".format(p['collectionDayBattlesPlayed'])
 
 	def update_donations(self, date=None, delay=None):
 		sheet = self.__sheet
