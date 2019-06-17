@@ -41,7 +41,7 @@ def is_wide(ch):
 
 	Parameters
 	----------
-	ch : character
+	ch : str
 	    The character to be checked.
 	"""
 	res = unicodedata.east_asian_width(ch)

@@ -1,0 +1,6 @@
+# crapi.py
+requests
+
+# spreadsheet.py
+tqdm
+pygsheets
