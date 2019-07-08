@@ -17,13 +17,13 @@ clan_tag = "#8V8CCV"
 
 class CRAPI(metaclass=utils.Singleton):
 	def __init__(self):
-		with open('crapi.json') as api_file:
+		with open("crapi.json") as api_file:
 			api = json.load(api_file)
-		api_token = api['key']
+		api_token = api["key"]
 		headers = {
-				'Accept': 'application/json',
-				'authorization': 'Bearer' + ' ' + api_token}
-		self.__base_url = "https://api.clashroyale.com/" + api['version']
+				"Accept": "application/json",
+				"authorization": "Bearer" + " " + api_token}
+		self.__base_url = "https://api.clashroyale.com/" + api["version"]
 		self.__session = requests.session()
 		self.__session.headers.update(headers)
 
@@ -53,7 +53,7 @@ class CRAPI(metaclass=utils.Singleton):
 		"""
 		query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
 		try:
-			members = self.__send_req(query)['items']
+			members = self.__send_req(query)["items"]
 		except Exception as e:
 			print("Unable to retrieve member list")
 			return None
@@ -70,18 +70,18 @@ class CRAPI(metaclass=utils.Singleton):
 		"""
 		query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
 		try:
-			members = self.__send_req(query)['items']
+			members = self.__send_req(query)["items"]
 		except Exception as e:
 			print("Unable to retrieve member list")
 			return None
 		hash_members = {}
 
 		for member in members:
-			query = "/players/{0}".format(quote_plus(member['tag']))
+			query = "/players/{0}".format(quote_plus(member["tag"]))
 			player = self.__send_req(query)
-			# Add field 'bestTrophies' to each member
-			member['bestTrophies'] = player['bestTrophies']
-			hash_members[member['tag']] = member
+			# Add field "bestTrophies" to each member
+			member["bestTrophies"] = player["bestTrophies"]
+			hash_members[member["tag"]] = member
 
 		return hash_members
 
@@ -100,12 +100,12 @@ class CRAPI(metaclass=utils.Singleton):
 					utils.align("名字", length=32),
 					utils.align("職位", length=6),
 					utils.align("獎盃", length=6),
-					utils.align("上線", length=6, dir='r')))
+					utils.align("上線", length=6, dir="r")))
 		print("=" * 56)
 		for member in members:
-			tag = member['tag']
-			name = member['name']
-			role = member['role']
+			tag = member["tag"]
+			name = member["name"]
+			role = member["role"]
 			if role == "leader":
 				role = "首領"
 			elif role == "coLeader":
@@ -116,19 +116,19 @@ class CRAPI(metaclass=utils.Singleton):
 				role = "成員"
 			else:
 				role = role
-			last_seen = member['lastSeen']
+			last_seen = member["lastSeen"]
 			last_seen_date = utils.datetime_from_str(last_seen)
 			offline = now - last_seen_date
 			last_seen = utils.get_rounded_str(offline)
-			clan_rank = str(member['clanRank'])
-			trophies = str(member['trophies'])
+			clan_rank = str(member["clanRank"])
+			trophies = str(member["trophies"])
 
 			print("{0}{1}{2}{3}{4}".format(
 						utils.align(clan_rank, length=6),
 						utils.align(name, length=32),
 						utils.align(role, length=6),
 						utils.align(trophies, length=6),
-						utils.align(last_seen, length=6, dir='r')))
+						utils.align(last_seen, length=6, dir="r")))
 
 	def get_warlog(self, limit=0):
 		"""Get warlog of the clan.
@@ -142,7 +142,7 @@ class CRAPI(metaclass=utils.Singleton):
 			query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog" + "?limit={0}".format(limit)
 		else:
 			query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog"
-		warlog = self.__send_req(query)['items']
+		warlog = self.__send_req(query)["items"]
 
 		return warlog
 
@@ -150,10 +150,10 @@ class CRAPI(metaclass=utils.Singleton):
 		warlog = self.get_warlog(limit)
 		early_date_str = utils.get_date_str(
 					utils.utc_to_local(
-						utils.datetime_from_str(warlog[len(warlog)-1]['createdDate'])))
+						utils.datetime_from_str(warlog[len(warlog)-1]["createdDate"])))
 		late_date_str = utils.get_date_str(
 					utils.utc_to_local(
-						utils.datetime_from_str(warlog[0]['createdDate'])))
+						utils.datetime_from_str(warlog[0]["createdDate"])))
 
 		print("部落戰紀錄 {0} ~ {1}，共 {2} 筆".format(
 			early_date_str,
@@ -163,21 +163,21 @@ class CRAPI(metaclass=utils.Singleton):
 		for war in reversed(warlog):
 			date_str = utils.get_date_str(
 					utils.utc_to_local(
-						utils.datetime_from_str(war['createdDate'])))
-			participants = war['participants']
-			standings = war['standings']
+						utils.datetime_from_str(war["createdDate"])))
+			participants = war["participants"]
+			standings = war["standings"]
 			for standing in standings:
-				if standing['clan']['tag'] == clan_tag:
-					trophy_change = standing['trophyChange']
+				if standing["clan"]["tag"] == clan_tag:
+					trophy_change = standing["trophyChange"]
 			print("部落戰 {0}".format(date_str))
 			print("獎盃： {0}".format(trophy_change))
 			print("參加人數： {0}".format(len(participants)))
-			print("名單：", end='')
+			print("名單：", end="")
 			i = 0
 			for p in participants:
 				if i % 3 == 0:
-					print("\n\t", end='')
-				print("{0}".format(utils.align(p['name'], length=20)), end='')
+					print("\n\t", end="")
+				print("{0}".format(utils.align(p["name"], length=20)), end="")
 				i += 1
 			print("")
 			print("=" * 56)

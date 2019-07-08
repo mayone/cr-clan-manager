@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 	print("CR Clan Statictics Managing System")
 	while True:
-		print('>> ', end='')
+		print(">> ", end="")
 		cmd = input().split()
 		ret = command_handler(cmd)
 		if ret == Status.QUIT:

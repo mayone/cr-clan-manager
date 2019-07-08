@@ -2,6 +2,7 @@
 
 # Variables
 venv="env"
+req_file="requirements.txt"
 
 # Create virtual environment
 venv_create()
@@ -26,7 +27,9 @@ venv_activate()
 	fi
 
 	# Install packages by requirements file
-	pip install -r requirements.txt
+	if [ -e "$req_file" ]; then
+		pip install -r $req_file
+	fi
 }
 
 venv_create
