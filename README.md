@@ -1,11 +1,20 @@
 # CR Clan Manager
 - Utilize Clash Royale API to manage Google Sheets
 
+## [Clash Royale API](https://developer.clashroyale.com/#/)
+- Generate key and fill token into `crapi.json`
+
 ## Setup Virtual Environment
-- `source venv_setup.sh`
+```sh
+source venv_setup.sh
+```
 
 ## Execute
-- `python manager.py`
+```sh
+python manager.py
+```
 
 ## Exit Virtual Environment
-- `deactivate`
+```sh
+deactivate
+```

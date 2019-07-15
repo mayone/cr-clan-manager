@@ -19,7 +19,7 @@ class CRAPI(metaclass=utils.Singleton):
 	def __init__(self):
 		with open("crapi.json") as api_file:
 			api = json.load(api_file)
-		api_token = api["key"]
+		api_token = api["token"]
 		headers = {
 				"Accept": "application/json",
 				"authorization": "Bearer" + " " + api_token}
