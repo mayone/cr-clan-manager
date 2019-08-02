@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import pprint
 import datetime
 from tqdm import tqdm
@@ -44,7 +45,10 @@ class Sheet():
 		index : int
 		    Index of worksheet in spreadsheet (starts from 0).
 		"""
-		client = pygsheets.authorize(service_file='client_secret.json')
+		try:
+			client = pygsheets.authorize(service_file='client_secret.json')
+		except Exception as e:
+			return None
 
 		# Open a worksheet from spreadsheet
 		spreadsheet = client.open('[皇室戰爭] 部落統計')
@@ -52,12 +56,19 @@ class Sheet():
 
 		return sheet
 
+	def __check_sheet(self):
+		if self.__sheet is not None:
+			return self.__sheet
+		else:
+			print("Please follow instructions in README to generate \"client_secret.json\" file")
+			sys.exit(1)
+			
 	def __set_frozen_cols(self, num_cols):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		sheet.frozen_cols = num_cols
 
 	def __get_tag_cells(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		start = sheet.find('標籤')[0].neighbour('bottom')
 		end = start
 		while end.neighbour('bottom').value != '':
@@ -68,7 +79,7 @@ class Sheet():
 		return tag_cells
 
 	def __sort_by_trophies(self, last_updated_row_index=51):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 
 		print("Sorting by trophies...")
 		# basecolumnindex starts from 0
@@ -81,7 +92,7 @@ class Sheet():
 		print("Sorted by trophies")
 
 	def init(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		header_cells = sheet.get_row(1, returnas='cells')
 		members = self.__crapi.get_members_dic().values()
 
@@ -102,7 +113,7 @@ class Sheet():
 		self.update_members()
 
 	def update_members(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
 
@@ -165,7 +176,7 @@ class Sheet():
 			self.__sort_by_trophies(last_inserted_row_index)
 
 	def update_trophies(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
 		last_updated_row_index = 0
@@ -194,7 +205,7 @@ class Sheet():
 			print("Trophies are already up to date")
 
 	def update_warlog(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		header_cells = sheet.get_row(1, returnas='cells')
 
 		# Search and set latest updated (genre, date, col_offset)
@@ -255,7 +266,7 @@ class Sheet():
 		war: Object
 		    The war from the warlog to be recorded
 		"""
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		col_index = sheet.cols - col_offset
 		tag_cells = self.__get_tag_cells()
 
@@ -309,7 +320,7 @@ class Sheet():
 					cell.note = "收集日({0}/3)".format(p['collectionDayBattlesPlayed'])
 
 	def update_donations(self, date=None, delay=None):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
 
@@ -374,6 +385,6 @@ class Sheet():
 			cell.value = str(member['donations'])
 
 	def __print_all(self):
-		sheet = self.__sheet
+		sheet = self.__check_sheet()
 		result = sheet.get_all_values(include_tailing_empty_rows=False)
 		pp.pprint(result)
