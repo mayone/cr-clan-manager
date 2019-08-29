@@ -243,13 +243,13 @@ def get_date_str(dt):
 
 def get_rounded_str(tdelta):
 	if tdelta > timedelta(weeks=1):
-		rounded_str = "{0} 週".format(int(tdelta.days/7))
+		rounded_str = "{0} 週".format(tdelta.days // 7)
 	elif tdelta > timedelta(days=1):
 		rounded_str = "{0} 天".format(tdelta.days)
 	elif tdelta > timedelta(hours=1):
-		rounded_str = "{0} 時".format(int(tdelta.seconds/3600))
+		rounded_str = "{0} 時".format(tdelta.seconds // 3600)
 	elif tdelta > timedelta(minutes=1):
-		rounded_str = "{0} 分".format(int(tdelta.seconds/60))
+		rounded_str = "{0} 分".format(tdelta.seconds // 60)
 	else:
 		rounded_str = "{0} 秒".format(tdelta.seconds)
 
