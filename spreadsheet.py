@@ -116,6 +116,9 @@ class Sheet():
 		sheet = self.__check_sheet()
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
+		
+		if not members:
+			return
 
 		sheet_tags = []
 		insertable_row_index = tag_cells[len(tag_cells)-1].row + 1
