@@ -116,7 +116,7 @@ class Sheet():
 		sheet = self.__check_sheet()
 		tag_cells = self.__get_tag_cells()
 		members = self.__crapi.get_members_dic()
-		
+
 		if not members:
 			return
 
@@ -274,7 +274,9 @@ class Sheet():
 		tag_cells = self.__get_tag_cells()
 
 		# Get info from warlog
-		date = war['createdDate'].split('T')[0]
+		date = utils.get_date_str(
+				utils.utc_to_local(
+					utils.datetime_from_str(war['createdDate'])))
 		participants = war['participants']
 		standings = war['standings']
 		for standing in standings:
