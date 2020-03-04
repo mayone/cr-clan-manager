@@ -3,4 +3,4 @@ requests
 
 # spreadsheet.py
 tqdm
-pygsheets
+pygsheets==2.0.2
