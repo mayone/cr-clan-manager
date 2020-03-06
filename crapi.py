@@ -102,16 +102,20 @@ class CRAPI(metaclass=utils.Singleton):
 					utils.align("獎盃", length=6),
 					utils.align("上線", length=6, dir="r")))
 		print("=" * 56)
+		num_leader = num_coleader = num_elder = 0
 		for member in members:
 			tag = member["tag"]
 			name = member["name"]
 			role = member["role"]
 			if role == "leader":
 				role = "首領"
+				num_leader += 1
 			elif role == "coLeader":
 				role = "副首"
+				num_coleader += 1
 			elif role == "elder":
 				role = "長老"
+				num_elder += 1
 			elif role == "member":
 				role = "成員"
 			else:
@@ -129,6 +133,9 @@ class CRAPI(metaclass=utils.Singleton):
 						utils.align(role, length=6),
 						utils.align(trophies, length=6),
 						utils.align(last_seen, length=6, dir="r")))
+		print("首領:{0} 位".format(utils.align(str(num_leader), length=6, dir="r")))
+		print("副首:{0} 位".format(utils.align(str(num_coleader), length=6, dir="r")))
+		print("長老:{0} 位".format(utils.align(str(num_elder), length=6, dir="r")))
 
 	def get_warlog(self, limit=0):
 		"""Get warlog of the clan.
