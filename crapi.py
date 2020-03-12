@@ -10,12 +10,12 @@ except ImportError:
 	# python 3
 	from urllib.parse import quote_plus
 
-import utils
-
+from utils import singleton, datetime_wrapper, align
+align = align.align
 
 clan_tag = "#8V8CCV"
 
-class CRAPI(metaclass=utils.Singleton):
+class CRAPI(metaclass=singleton.Singleton):
 	def __init__(self):
 		with open("crapi.json") as api_file:
 			api = json.load(api_file)
@@ -92,15 +92,15 @@ class CRAPI(metaclass=utils.Singleton):
 			print("No member to display")
 			return
 
-		now = utils.get_utcnow()
+		now = datetime_wrapper.get_utcnow()
 
 		print("部落成員，共 {0} 名".format(len(members)))
 		print("{0}{1}{2}{3}{4}".format(
-					utils.align("排名", length=6),
-					utils.align("名字", length=32),
-					utils.align("職位", length=6),
-					utils.align("獎盃", length=6),
-					utils.align("上線", length=6, dir="r")))
+					align("排名", length=6),
+					align("名字", length=32),
+					align("職位", length=6),
+					align("獎盃", length=6),
+					align("上線", length=6, dir="r")))
 		print("=" * 56)
 		num_leader = num_coleader = num_elder = 0
 		for member in members:
@@ -121,21 +121,21 @@ class CRAPI(metaclass=utils.Singleton):
 			else:
 				role = role
 			last_seen = member["lastSeen"]
-			last_seen_date = utils.datetime_from_str(last_seen)
+			last_seen_date = datetime_wrapper.datetime_from_str(last_seen)
 			offline = now - last_seen_date
-			last_seen = utils.get_rounded_str(offline)
+			last_seen = datetime_wrapper.get_rounded_str(offline)
 			clan_rank = str(member["clanRank"])
 			trophies = str(member["trophies"])
 
 			print("{0}{1}{2}{3}{4}".format(
-						utils.align(clan_rank, length=6),
-						utils.align(name, length=32),
-						utils.align(role, length=6),
-						utils.align(trophies, length=6),
-						utils.align(last_seen, length=6, dir="r")))
-		print("首領:{0} 位".format(utils.align(str(num_leader), length=6, dir="r")))
-		print("副首:{0} 位".format(utils.align(str(num_coleader), length=6, dir="r")))
-		print("長老:{0} 位".format(utils.align(str(num_elder), length=6, dir="r")))
+						align(clan_rank, length=6),
+						align(name, length=32),
+						align(role, length=6),
+						align(trophies, length=6),
+						align(last_seen, length=6, dir="r")))
+		print("首領:{0} 位".format(align(str(num_leader), length=6, dir="r")))
+		print("副首:{0} 位".format(align(str(num_coleader), length=6, dir="r")))
+		print("長老:{0} 位".format(align(str(num_elder), length=6, dir="r")))
 
 	def get_warlog(self, limit=0):
 		"""Get warlog of the clan.
@@ -155,12 +155,12 @@ class CRAPI(metaclass=utils.Singleton):
 
 	def show_warlog(self, limit=0):
 		warlog = self.get_warlog(limit)
-		early_date_str = utils.get_date_str(
-					utils.utc_to_local(
-						utils.datetime_from_str(warlog[len(warlog)-1]["createdDate"])))
-		late_date_str = utils.get_date_str(
-					utils.utc_to_local(
-						utils.datetime_from_str(warlog[0]["createdDate"])))
+		early_date_str = datetime_wrapper.get_date_str(
+					datetime_wrapper.utc_to_local(
+						datetime_wrapper.datetime_from_str(warlog[len(warlog)-1]["createdDate"])))
+		late_date_str = datetime_wrapper.get_date_str(
+					datetime_wrapper.utc_to_local(
+						datetime_wrapper.datetime_from_str(warlog[0]["createdDate"])))
 
 		print("部落戰紀錄 {0} ~ {1}，共 {2} 筆".format(
 			early_date_str,
@@ -168,9 +168,9 @@ class CRAPI(metaclass=utils.Singleton):
 			len(warlog)))
 		print("=" * 56)
 		for war in reversed(warlog):
-			date_str = utils.get_date_str(
-					utils.utc_to_local(
-						utils.datetime_from_str(war["createdDate"])))
+			date_str = datetime_wrapper.get_date_str(
+					datetime_wrapper.utc_to_local(
+						datetime_wrapper.datetime_from_str(war["createdDate"])))
 			participants = war["participants"]
 			standings = war["standings"]
 			for standing in standings:
@@ -184,7 +184,7 @@ class CRAPI(metaclass=utils.Singleton):
 			for p in participants:
 				if i % 3 == 0:
 					print("\n\t", end="")
-				print("{0}".format(utils.align(p["name"], length=20)), end="")
+				print("{0}".format(align(p["name"], length=20)), end="")
 				i += 1
 			print("")
 			print("=" * 56)
