@@ -8,7 +8,8 @@ from tqdm import tqdm
 import pygsheets
 
 import crapi
-import utils
+from utils import datetime_wrapper, alignment
+align = alignment.align
 
 from enum import IntEnum, auto
 
@@ -144,7 +145,7 @@ class Sheet():
 			sheet.insert_rows(tag_cells[len(tag_cells)-1].row)
 			sheet.delete_rows(row_index)
 			print("Member: {0} is removed".format(
-					utils.align(name, length=32)))
+					align(name, length=32)))
 			insertable_row_index -= 1
 
 		# Add new members
@@ -171,7 +172,7 @@ class Sheet():
 				else:
 					row_to_fill[3].value = "0"
 				print("Member: {0} is added".format(
-					utils.align(member['name'], length=32)))
+					align(member['name'], length=32)))
 				last_inserted_row_index = insertable_row_index
 				insertable_row_index += 1
 
@@ -196,7 +197,7 @@ class Sheet():
 			trophy_cell = tag_cell.neighbour('right')
 			if trophy_cell.value < str(member['bestTrophies']):
 				print("Update member {0} trophies: {1} -> {2}".format(
-						utils.align(member['name'], length=32),
+						align(member['name'], length=32),
 						trophy_cell.value, member['bestTrophies']))
 				trophy_cell.value = str(member['bestTrophies'])
 				last_updated_row_index = trophy_cell.row
@@ -236,9 +237,9 @@ class Sheet():
 		# Set index to the unrecorded war in warlog
 		for i in range(len(warlog)):		
 			war = warlog[i]
-			date = utils.get_date_str(
-					utils.utc_to_local(
-						utils.datetime_from_str(war['createdDate'])))
+			date = datetime_wrapper.get_date_str(
+					datetime_wrapper.utc_to_local(
+						datetime_wrapper.datetime_from_str(war['createdDate'])))
 			if date > latest_updated_date:
 				warlog_unrecorded_offset = i
 			elif date == latest_updated_date and \
@@ -274,9 +275,9 @@ class Sheet():
 		tag_cells = self.__get_tag_cells()
 
 		# Get info from warlog
-		date = utils.get_date_str(
-				utils.utc_to_local(
-					utils.datetime_from_str(war['createdDate'])))
+		date = datetime_wrapper.get_date_str(
+				datetime_wrapper.utc_to_local(
+					datetime_wrapper.datetime_from_str(war['createdDate'])))
 		participants = war['participants']
 		standings = war['standings']
 		for standing in standings:
@@ -346,13 +347,13 @@ class Sheet():
 				except Exception as e:
 					continue
 
-		now = utils.get_now()
+		now = datetime_wrapper.get_now()
 		if date:
 			record_dt = datetime.datetime(now.year, int(date.split('/')[0]), int(date.split('/')[1]))
-			full_date = utils.get_date_str(record_dt)
+			full_date = datetime_wrapper.get_date_str(record_dt)
 		else:
 			date = now.strftime("%m/%d")
-			full_date = utils.get_date_str(now)
+			full_date = datetime_wrapper.get_date_str(now)
 
 		if latest_updated_date == full_date and \
 			latest_updated_genre == RecordGenre.DONATE:
