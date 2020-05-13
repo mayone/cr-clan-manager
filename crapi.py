@@ -120,10 +120,14 @@ class CRAPI(metaclass=singleton.Singleton):
 				role = "成員"
 			else:
 				role = role
-			last_seen = member["lastSeen"]
-			last_seen_date = datetime_wrapper.datetime_from_str(last_seen)
-			offline = now - last_seen_date
-			last_seen = datetime_wrapper.get_rounded_str(offline)
+			try:
+				last_seen = member["lastSeen"]
+				last_seen_date = datetime_wrapper.datetime_from_str(last_seen)
+				offline = now - last_seen_date
+				last_seen = datetime_wrapper.get_rounded_str(offline)
+			except Exception as e:
+				last_seen = ""
+			
 			clan_rank = str(member["clanRank"])
 			trophies = str(member["trophies"])
 
