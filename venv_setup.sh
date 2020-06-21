@@ -28,7 +28,7 @@ venv_activate()
 
 	# Install packages by requirements file
 	if [ -e "$req_file" ]; then
-		pip install -r $req_file
+		pip3 install -r $req_file
 	fi
 }
 
