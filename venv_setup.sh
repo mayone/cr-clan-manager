@@ -1,36 +1,41 @@
 #!/bin/sh
 
+. ./utils.sh
+
 # Variables
-venv="env"
-req_file="requirements.txt"
+VENV="env"
+REQ="requirements.txt"
+
+main () {
+	venv_create
+	venv_activate
+}
 
 # Create virtual environment
-venv_create()
-{
-	if ! [ -d "$venv" ]; then
-		python3 -m venv $venv
-		echo "virtual environment created"
+venv_create() {
+	if ! check_exist "${VENV}"; then
+		python3 -m venv ${VENV}
+		info "Virtual environment created"
 	else
-		echo "virtual environment existed"
+		info "Virtual environment existed"
 	fi
 }
 
 # Activate virtual environment
-venv_activate()
-{
-	if [ -d "$venv" ]; then
-		source $venv/bin/activate
-		echo "virtual environment activated"
+venv_activate() {
+	if check_exist "${VENV}"; then
+		source ${VENV}/bin/activate
+		info "Virtual environment activated"
 	else
-		echo "Unable to find virtual environment"
+		info "Unable to find virtual environment"
 		exit 1
 	fi
 
 	# Install packages by requirements file
-	if [ -e "$req_file" ]; then
-		pip3 install -r $req_file
+	if check_exist "${REQ}"; then
+		pip3 install -r ${REQ}
+		info "Packages installed"
 	fi
 }
 
-venv_create
-venv_activate
+main
