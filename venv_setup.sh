@@ -55,7 +55,7 @@ CYAN='\033[0;36m'
 WHITE='\033[0;37m'
 
 info() {
-  pintf "\r  [ ${BLUE}..${NC} ] $1\n"
+  printf "\r  [ ${BLUE}..${NC} ] $1\n"
 }
 
 ok() {
