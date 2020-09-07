@@ -147,6 +147,138 @@ class CRAPI(metaclass=singleton.Singleton):
         print("副首:{0} 位".format(align(str(num_coleader), length=6, dir="r")))
         print("長老:{0} 位".format(align(str(num_elder), length=6, dir="r")))
 
+    def show_race(self):
+        """Show current river race of the clan.
+
+        Returns
+        -------
+        warlog : list
+            Order: later to former.
+        """
+        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/currentriverrace"
+        race = self.__send_req(query)
+
+        if not race:
+            print("沒有正在進行的部落戰")
+            return
+
+        clans = race['clans']
+        # Show other clans
+        print("河流競賽")
+        print("{0}{1}{2}{3}".format(
+            align("部落 (獎盃)", length=24),
+            align("名譽值", length=8, dir="r"),
+            align("維修值", length=8, dir="r"),
+            align("完成時間", length=12, dir="r")))
+        print("=" * 56)
+        for clan in clans:
+            if clan['tag'] == clan_tag:
+                # Skip our clan
+                continue
+            name = clan['name']
+            score = str(clan['clanScore'])
+            fame = str(clan['fame'])
+            repair = str(clan['repairPoints'])
+            try:
+                finish_time = datetime_wrapper.get_date_str(
+                    datetime_wrapper.utc_to_local(
+                        datetime_wrapper.datetime_from_str(clan['finishTime'])))
+            except Exception as e:
+                finish_time = "未完成"
+            print("{0}{1}{2}{3}".format(
+                align("{0} ({1})".format(name,score), length=24),
+                align(fame, length=8, dir="r"),
+                align(repair, length=8, dir="r"),
+                align(finish_time, length=12, dir="r")))
+
+        clan = race['clan']
+        # Show our clan
+        # print(clan)
+        name = clan['name']
+        score = str(clan['clanScore'])
+        fame = str(clan['fame'])
+        repair = str(clan['repairPoints'])
+        print("{0}{1}{2}{3}".format(
+            align("{0} ({1})".format(name,score), length=24),
+            align(fame, length=8, dir="r"),
+            align(repair, length=8, dir="r"),
+            align(finish_time, length=12, dir="r")))
+        # TODO: Show contribution of members
+
+    def get_racelog(self, limit=0):
+        """Get racelog of the clan.
+
+        Returns
+        -------
+        racelog : list
+            Order: later to former.
+        """
+        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/riverracelog" + \
+            ("?limit={0}".format(limit) if limit > 0 else "")
+
+        racelog = None
+        try:
+            racelog = self.__send_req(query)["items"]
+        except Exception as e:
+            print("Error: Unable to retrieve racelog")
+
+        return racelog
+    
+    def show_racelog(self, limit=0):
+        racelog = self.get_racelog(limit)
+        if not racelog or len(racelog) == 0:
+            print("沒有河流競賽紀錄")
+            return
+        early_date_str = datetime_wrapper.get_date_str(
+            datetime_wrapper.utc_to_local(
+                datetime_wrapper.datetime_from_str(racelog[len(racelog)-1]["createdDate"])))
+        late_date_str = datetime_wrapper.get_date_str(
+            datetime_wrapper.utc_to_local(
+                datetime_wrapper.datetime_from_str(racelog[0]["createdDate"])))
+
+        print("河流競賽紀錄 {0} ~ {1}，共 {2} 筆".format(
+            early_date_str,
+            late_date_str,
+            len(racelog)))
+        print("=" * 56)
+        for race in reversed(racelog):
+            season_id = race["seasonId"]
+            created_date_str = datetime_wrapper.get_date_str(
+                datetime_wrapper.utc_to_local(
+                    datetime_wrapper.datetime_from_str(race["createdDate"])))
+            standings = race["standings"]
+            for standing in standings:
+                clan = standing["clan"]
+                if clan["tag"] == clan_tag:
+                    rank = standing["rank"]
+                    trophy_change = standing["trophyChange"]
+                    fame = clan["fame"]
+                    repair = clan["repairPoints"]
+                    try:
+                        finished_date_str = datetime_wrapper.get_date_str(
+                            datetime_wrapper.utc_to_local(
+                                datetime_wrapper.datetime_from_str(clan["finishTime"])))
+                    except Exception as e:
+                        finished_date_str = "未完成"
+                    participants = clan["participants"]
+
+            print("河流競賽 {0}".format(season_id))
+            print("完成日期： {0}".format(finished_date_str))
+            print("結束日期： {0}".format(created_date_str))
+            print("名次： {0}".format(rank))
+            print("獎盃： {0}".format(trophy_change))
+            print("名譽(維修)： {0}({1})".format(fame, repair))
+            print("參加人數： {0}".format(len(participants)))
+            print("名單：", end="")
+            i = 0
+            for p in participants:
+                if i % 3 == 0:
+                    print("\n\t", end="")
+                print("{0}".format(align(p["name"], length=20)), end="")
+                i += 1
+            print("")
+            print("=" * 56)
+
     def get_warlog(self, limit=0):
         """Get warlog of the clan.
 
@@ -155,11 +287,8 @@ class CRAPI(metaclass=singleton.Singleton):
         warlog : list
             Order: later to former.
         """
-        if limit > 0:
-            query = "/clans/{0}".format(quote_plus(clan_tag)) + \
-                "/warlog" + "?limit={0}".format(limit)
-        else:
-            query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog"
+        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/warlog" + \
+            ("?limit={0}".format(limit) if limit > 0 else "")
 
         warlog = None
         try:

@@ -50,6 +50,8 @@ def command_handler(cmd):
 show_cmd_help = (
     "Show (show)\n"
     "    members               Show all clan members\n"
+    "    race                  Show current river race\n"
+    "    racelog [count]       Show racelog (specified number)\n"
     "    warlog [count]        Show warlog (specified number)\n")
 
 
@@ -62,6 +64,21 @@ def show_handler(cmd):
     if tok == "members":
         crapi.show_members()
         return Status.OK
+    elif tok == "race":
+        crapi.show_race()
+        return Status.OK
+    elif tok == "racelog":
+        if len(cmd) > 0:
+            try:
+                count = int(cmd.pop(0))
+            except Exception as e:
+                print(show_cmd_help)
+                return Status.FAIL
+            crapi.show_racelog(count)
+            return Status.OK
+        else:
+            crapi.show_racelog()
+            return Status.OK
     elif tok == "warlog":
         if len(cmd) > 0:
             try:
