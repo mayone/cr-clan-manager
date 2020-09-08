@@ -269,12 +269,18 @@ class CRAPI(metaclass=singleton.Singleton):
             print("獎盃： {0}".format(trophy_change))
             print("名譽(維修)： {0}({1})".format(fame, repair))
             print("參加人數： {0}".format(len(participants)))
-            print("名單：", end="")
+            print("名單 (名譽/維修)：", end="")
             i = 0
+            num_columns = 2
             for p in participants:
-                if i % 3 == 0:
-                    print("\n\t", end="")
-                print("{0}".format(align(p["name"], length=20)), end="")
+                p_name = p["name"]
+                p_fame = str(p["fame"])
+                p_repair = str(p["repairPoints"])
+                if i % num_columns == 0:
+                    print("\n  ", end="")
+                print("{0} {1}  ".format(
+                    align(p_name, length=20),
+                    align("("+p_fame+" / "+p_repair+")", length=16, dir="r")), end="")
                 i += 1
             print("")
             print("=" * 56)
@@ -329,8 +335,9 @@ class CRAPI(metaclass=singleton.Singleton):
             print("參加人數： {0}".format(len(participants)))
             print("名單：", end="")
             i = 0
+            num_columns = 3
             for p in participants:
-                if i % 3 == 0:
+                if i % num_columns == 0:
                     print("\n\t", end="")
                 print("{0}".format(align(p["name"], length=20)), end="")
                 i += 1
