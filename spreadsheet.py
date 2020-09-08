@@ -213,6 +213,124 @@ class Sheet():
         else:
             print("Trophies are already up to date")
 
+    def update_racelog(self):
+        sheet = self.__check_sheet()
+        header_cells = sheet.get_row(1, returnas='cells')
+
+        # Search and set latest updated (genre, date, col_offset)
+        latest_updated_genre = RecordGenre.UNKNOWN
+        for header_cell in reversed(header_cells):
+            if header_cell.note != None:
+                try:
+                    if header_cell.note.split()[0] == "結算日":
+                        latest_updated_genre = RecordGenre.WAR
+                    elif header_cell.note.split()[0] == "統計日":
+                        latest_updated_genre = RecordGenre.DONATE
+                    latest_updated_date = header_cell.note.split()[1]
+                    latest_updated_col_offset = sheet.cols - header_cell.col
+                    break
+                except Exception as e:
+                    continue
+
+        if latest_updated_genre == RecordGenre.UNKNOWN:
+            latest_updated_col_offset = sheet.cols - 4
+            latest_updated_date = "00000000"
+
+        racelog = self.__crapi.get_racelog()
+        racelog_unrecorded_offset = -1
+
+        # Set index to the unrecorded war in racelog
+        for i in range(len(racelog)):
+            race = racelog[i]
+            date = datetime_wrapper.get_date_str(
+                datetime_wrapper.utc_to_local(
+                    datetime_wrapper.datetime_from_str(race['createdDate'])))
+            if date > latest_updated_date:
+                racelog_unrecorded_offset = i
+            elif date == latest_updated_date and \
+                    latest_updated_genre == RecordGenre.DONATE:
+                racelog_unrecorded_offset = i
+            else:
+                break
+
+        for i in range(racelog_unrecorded_offset, -1, -1):
+            race = racelog[i]
+            # Keep the last column empty
+            if latest_updated_col_offset <= 1:
+                # Insert and inherit from the last column
+                sheet.insert_cols(sheet.cols - 1, number=1,
+                                  values=None, inherit=False)
+                latest_updated_col_offset += 1
+            self.__fill_race(latest_updated_col_offset - 1, race)
+            latest_updated_col_offset -= 1
+
+        return True
+
+    def __fill_race(self, col_offset, race):
+        """Fill specified race records to the target column.
+
+        Parameters
+        ----------
+        col_offset : int
+            Offset of the target column from the last column.
+        race: Object
+            The race from the racelog to be recorded
+        """
+        sheet = self.__check_sheet()
+        col_index = sheet.cols - col_offset
+        tag_cells = self.__get_tag_cells()
+
+        # Get info from race
+        race_end_date = datetime_wrapper.get_date_str(
+            datetime_wrapper.utc_to_local(
+                datetime_wrapper.datetime_from_str(race['createdDate'])))
+        standings = race["standings"]
+        for standing in standings:
+            clan = standing["clan"]
+            if clan["tag"] == crapi.clan_tag:
+                participants = clan["participants"]
+                break
+
+        print("Filling race " + race_end_date)
+
+        season_id = race['seasonId']
+        section_idx = race['sectionIndex']
+
+        header_cell = sheet.cell((1, col_index))
+        header_cell.value = "部落戰 " + "{0}-{1}".format(season_id, section_idx)
+        header_cell.note = "結算日 " + race_end_date
+        header_cell.color = Color.pink
+
+        # Fill race records into sheet
+        for p in tqdm(participants):
+            tag = p['tag']
+            row_index = 0
+            for tag_cell in tag_cells:
+                if tag == tag_cell.value:
+                    row_index = tag_cell.row
+                    break
+            if row_index:
+                cell = sheet.cell((row_index, col_index))
+            else:
+                print("Warning: member tag " + tag + " do not exists")
+                continue
+
+            fame = p['fame']
+            repair = p['repairPoints']
+            # warday_played = p['battlesPlayed']
+            # wins = p['wins']
+            # loses = warday_played - wins
+
+            # Form record and fill in
+            if (fame + repair > 0):
+                record = "{0} ({1})".format(str(fame), str(repair))
+            else:
+                record = "0"
+                # Mark with color red if didn't participate
+                cell.color = Color.red
+                cell.note = "未參加"
+            cell.value = record
+
     def update_warlog(self):
         sheet = self.__check_sheet()
         header_cells = sheet.get_row(1, returnas='cells')

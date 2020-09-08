@@ -162,9 +162,11 @@ class CRAPI(metaclass=singleton.Singleton):
             print("沒有正在進行的部落戰")
             return
 
+        section_idx = race['sectionIndex']
+
         clans = race['clans']
         # Show other clans
-        print("河流競賽")
+        print("河流競賽 Week "+ str(section_idx))
         print("{0}{1}{2}{3}".format(
             align("部落 (獎盃)", length=24),
             align("名譽值", length=8, dir="r"),

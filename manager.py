@@ -102,6 +102,7 @@ update_cmd_help = (
     "    members               Update members of clan\n"
     "    trophy                Update trophies of members\n"
     "    warlog                Update warlog\n"
+    "    racelog               Update racelog\n"
     "    donation [date]       Update donations of members (specified date)\n")
 
 
@@ -119,6 +120,9 @@ def update_handler(cmd):
         return Status.OK
     elif tok == "warlog":
         sheet.update_warlog()
+        return Status.OK
+    elif tok == "racelog":
+        sheet.update_racelog()
         return Status.OK
     elif tok == "donation":
         if len(cmd) > 0:
