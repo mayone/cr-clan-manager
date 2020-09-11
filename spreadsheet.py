@@ -289,6 +289,7 @@ class Sheet():
             clan = standing["clan"]
             if clan["tag"] == crapi.clan_tag:
                 participants = clan["participants"]
+                participants.sort(key = lambda p: p['fame']+p['repairPoints'], reverse = True)
                 break
 
         print("Filling race " + race_end_date)
@@ -301,6 +302,7 @@ class Sheet():
         header_cell.note = "結算日 " + race_end_date
         header_cell.color = Color.pink
 
+        ranking = 0
         # Fill race records into sheet
         for p in tqdm(participants):
             tag = p['tag']
@@ -317,9 +319,6 @@ class Sheet():
 
             fame = p['fame']
             repair = p['repairPoints']
-            # warday_played = p['battlesPlayed']
-            # wins = p['wins']
-            # loses = warday_played - wins
 
             # Form record and fill in
             if (fame + repair > 0):
@@ -330,6 +329,12 @@ class Sheet():
                 cell.color = Color.red
                 cell.note = "未參加"
             cell.value = record
+
+            # Mark top 5 participants
+            if (ranking < 5):
+                ranking += 1
+                cell.color = Color.blue
+                cell.note = "ranking: {0}".format(ranking)
 
     def update_warlog(self):
         sheet = self.__check_sheet()

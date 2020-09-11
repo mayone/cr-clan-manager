@@ -263,6 +263,7 @@ class CRAPI(metaclass=singleton.Singleton):
                     except Exception as e:
                         finished_date_str = "未完成"
                     participants = clan["participants"]
+                    participants.sort(key = lambda p: p['fame']+p['repairPoints'], reverse = True)
 
             print("河流競賽 {0}".format(season_id))
             print("完成日期： {0}".format(finished_date_str))
