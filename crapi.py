@@ -200,6 +200,12 @@ class CRAPI(metaclass=singleton.Singleton):
         score = str(clan['clanScore'])
         fame = str(clan['fame'])
         repair = str(clan['repairPoints'])
+        try:
+            finish_time = datetime_wrapper.get_date_str(
+                datetime_wrapper.utc_to_local(
+                    datetime_wrapper.datetime_from_str(clan['finishTime'])))
+        except Exception as e:
+            finish_time = "未完成"
         print("{0}{1}{2}{3}".format(
             align("{0} ({1})".format(name,score), length=24),
             align(fame, length=8, dir="r"),
