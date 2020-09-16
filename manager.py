@@ -80,6 +80,7 @@ def show_handler(cmd):
             crapi.show_racelog()
             return Status.OK
     elif tok == "warlog":
+        # Deprecated
         if len(cmd) > 0:
             try:
                 count = int(cmd.pop(0))
@@ -119,6 +120,7 @@ def update_handler(cmd):
         sheet.update_trophies()
         return Status.OK
     elif tok == "warlog":
+        # Deprecated
         sheet.update_warlog()
         return Status.OK
     elif tok == "racelog":
@@ -145,7 +147,7 @@ if __name__ == "__main__":
 
     print("CR Clan Statictics Managing System")
     while True:
-        print(">> ", end="")
+        print("❯ ", end="")
         cmd = input().split()
         ret = command_handler(cmd)
         if ret == Status.QUIT:

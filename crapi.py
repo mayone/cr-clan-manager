@@ -33,9 +33,9 @@ class CRAPI(metaclass=singleton.Singleton):
         except Exception as e:
             status, payload = e.args
             print("API request error:")
-            print("    Status: {0}".format(status))
-            print("    Reason: {0}".format(payload['reason']))
-            print("    Message: {0}".format(payload['message']))
+            print("  Status: {0}".format(status))
+            print("  Reason: {0}".format(payload['reason']))
+            print("  Message: {0}".format(payload['message']))
 
     def get_members(self):
         """Get members of the clan.
@@ -48,7 +48,7 @@ class CRAPI(metaclass=singleton.Singleton):
         try:
             members = self.__send_req(query)["items"]
         except Exception as e:
-            print("Unable to retrieve member list")
+            print("Error: Unable to retrieve member list")
             return None
 
         return members
@@ -65,7 +65,7 @@ class CRAPI(metaclass=singleton.Singleton):
         try:
             members = self.__send_req(query)["items"]
         except Exception as e:
-            print("Unable to retrieve member list")
+            print("Error: Unable to retrieve member list")
             return None
         hash_members = {}
 
@@ -281,6 +281,7 @@ class CRAPI(metaclass=singleton.Singleton):
             print("")
             print("=" * 56)
 
+    # Deprecated
     def get_warlog(self, limit=0):
         """Get warlog of the clan.
 
@@ -300,6 +301,7 @@ class CRAPI(metaclass=singleton.Singleton):
 
         return warlog
 
+    # Deprecated
     def show_warlog(self, limit=0):
         warlog = self.get_warlog(limit)
         if not warlog or len(warlog) == 0:

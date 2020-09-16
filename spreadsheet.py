@@ -336,6 +336,7 @@ class Sheet():
                 cell.color = Color.blue
                 cell.note = "ranking: {0}".format(ranking)
 
+    # Deprecated
     def update_warlog(self):
         sheet = self.__check_sheet()
         header_cells = sheet.get_row(1, returnas='cells')
@@ -389,6 +390,7 @@ class Sheet():
 
         return True
 
+    # Deprecated
     def __update_war(self, col_offset, war):
         """Update specified war records to the target column.
 
