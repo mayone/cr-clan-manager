@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-import requests
-import urllib
 try:
     # python 2
     from urllib import quote_plus
@@ -10,6 +8,7 @@ except ImportError:
     # python 3
     from urllib.parse import quote_plus
 
+from api import API
 from utils import singleton, datetime_wrapper, alignment
 align = alignment.align
 
@@ -19,36 +18,24 @@ clan_tag = "#8V8CCV"
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
         with open("crapi.json") as api_file:
-            api = json.load(api_file)
-        api_token = api["token"]
-        headers = {
-            "Accept": "application/json",
-            "authorization": "Bearer" + " " + api_token
-        }
-        self.__base_url = "https://api.clashroyale.com/" + api["version"]
-        self.__session = requests.session()
-        self.__session.headers.update(headers)
+            api_config = json.load(api_file)
+        ver = api_config["version"]
+        jwt = api_config["token"]
+
+        self.__api = API()
+        self.__api.set_url("https://api.clashroyale.com/" + ver)
+        self.__api.set_jwt(jwt)
 
     def __send_req(self, query):
-        session = self.__session
-
-        req = self.__base_url + query
         try:
-            resp = session.get(req)
+            resp = self.__api.GET(query)
+            return resp
         except Exception as e:
-            print(e)
-            return None
-
-        status_code = resp.status_code
-        body = resp.json()
-
-        if status_code == 200:
-            return body
-        else:
-            print("Error: {0}".format(status_code))
-            print("Reason: {0}".format(body["reason"]))
-            print("Message: {0}".format(body["message"]))
-            return None
+            status, payload = e.args
+            print("API request error:")
+            print("    Status: {0}".format(status))
+            print("    Reason: {0}".format(payload['reason']))
+            print("    Message: {0}".format(payload['message']))
 
     def get_members(self):
         """Get members of the clan.
