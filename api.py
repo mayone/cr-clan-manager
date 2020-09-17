@@ -18,7 +18,7 @@ class API():
     def set_jwt(self, jwt):
         self.__jwt = jwt
         headers = {
-            "Authorization": "Bearer {0}".format(self.__jwt)
+            "Authorization": f"Bearer {self.__jwt}"
         }
         self.__session.headers.update(headers)
 

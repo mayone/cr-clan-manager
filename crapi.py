@@ -19,11 +19,11 @@ class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
         with open("crapi.json") as api_file:
             api_config = json.load(api_file)
-        ver = api_config["version"]
-        jwt = api_config["token"]
+        ver = api_config['version']
+        jwt = api_config['token']
 
         self.__api = API()
-        self.__api.set_url("https://api.clashroyale.com/" + ver)
+        self.__api.set_url(f"https://api.clashroyale.com/{ver}")
         self.__api.set_jwt(jwt)
 
     def __send_req(self, query):
@@ -32,10 +32,12 @@ class CRAPI(metaclass=singleton.Singleton):
             return resp
         except Exception as e:
             status, payload = e.args
-            print("API request error:")
-            print("  Status: {0}".format(status))
-            print("  Reason: {0}".format(payload['reason']))
-            print("  Message: {0}".format(payload['message']))
+            print(
+                "API request error:\n"
+                f"  Status: {status}\n"
+                f"  Reason: {payload['reason']}\n"
+                f"  Message: {payload['message']}"
+            )
 
     def get_members(self):
         """Get members of the clan.
@@ -44,9 +46,9 @@ class CRAPI(metaclass=singleton.Singleton):
         -------
         members : list
         """
-        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
+        query = f"/clans/{quote_plus(clan_tag)}/members"
         try:
-            members = self.__send_req(query)["items"]
+            members = self.__send_req(query)['items']
         except Exception as e:
             print("Error: Unable to retrieve member list")
             return None
@@ -61,20 +63,21 @@ class CRAPI(metaclass=singleton.Singleton):
         members : dictionary
             Use tag as key, member as value.
         """
-        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/members"
+        query = f"/clans/{quote_plus(clan_tag)}/members"
         try:
-            members = self.__send_req(query)["items"]
+            members = self.__send_req(query)['items']
         except Exception as e:
             print("Error: Unable to retrieve member list")
             return None
         hash_members = {}
 
         for member in members:
-            query = "/players/{0}".format(quote_plus(member["tag"]))
+            tag = member['tag']
+            query = f"/players/{quote_plus(tag)}"
             player = self.__send_req(query)
             # Add field "bestTrophies" to each member
-            member["bestTrophies"] = player["bestTrophies"]
-            hash_members[member["tag"]] = member
+            member['bestTrophies'] = player['bestTrophies']
+            hash_members[tag] = member
 
         return hash_members
 
@@ -87,19 +90,20 @@ class CRAPI(metaclass=singleton.Singleton):
 
         now = datetime_wrapper.get_utcnow()
 
-        print("部落成員，共 {0} 名".format(len(members)))
-        print("{0}{1}{2}{3}{4}".format(
-            align("排名", length=6),
-            align("名字", length=32),
-            align("職位", length=6),
-            align("獎盃", length=6),
-            align("上線", length=6, dir="r")))
+        print(f"部落成員，共 {len(members)} 名")
+        print(
+            f"{align('排名', length=6)}"
+            f"{align('名字', length=32)}"
+            f"{align('職位', length=6)}"
+            f"{align('獎盃', length=6)}"
+            f"{align('上線', length=6, dir='r')}"
+        )
         print("=" * 56)
         num_leader = num_coleader = num_elder = 0
         for member in members:
-            tag = member["tag"]
-            name = member["name"]
-            role = member["role"]
+            tag = member['tag']
+            name = member['name']
+            role = member['role']
             if role == "leader":
                 role = "首領"
                 num_leader += 1
@@ -114,22 +118,23 @@ class CRAPI(metaclass=singleton.Singleton):
             else:
                 role = role
             try:
-                last_seen = member["lastSeen"]
+                last_seen = member['lastSeen']
                 last_seen_date = datetime_wrapper.datetime_from_str(last_seen)
                 offline = now - last_seen_date
                 last_seen = datetime_wrapper.get_rounded_str(offline)
             except Exception as e:
                 last_seen = ""
 
-            clan_rank = str(member["clanRank"])
-            trophies = str(member["trophies"])
+            clan_rank = str(member['clanRank'])
+            trophies = str(member['trophies'])
 
-            print("{0}{1}{2}{3}{4}".format(
-                align(clan_rank, length=6),
-                align(name, length=32),
-                align(role, length=6),
-                align(trophies, length=6),
-                align(last_seen, length=6, dir="r")))
+            print(
+                f"{align(clan_rank, length=6)}"
+                f"{align(name, length=32)}"
+                f"{align(role, length=6)}"
+                f"{align(trophies, length=6)}"
+                f"{align(last_seen, length=6, dir='r')}"
+            )
         print("首領:{0} 位".format(align(str(num_leader), length=6, dir="r")))
         print("副首:{0} 位".format(align(str(num_coleader), length=6, dir="r")))
         print("長老:{0} 位".format(align(str(num_elder), length=6, dir="r")))
@@ -142,7 +147,7 @@ class CRAPI(metaclass=singleton.Singleton):
         warlog : list
             Order: later to former.
         """
-        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/currentriverrace"
+        query = f"/clans/{quote_plus(clan_tag)}/currentriverrace"
         race = self.__send_req(query)
 
         if not race:
@@ -153,12 +158,13 @@ class CRAPI(metaclass=singleton.Singleton):
 
         clans = race['clans']
         # Show other clans
-        print("河流競賽 Week "+ str(section_idx))
-        print("{0}{1}{2}{3}".format(
-            align("部落 (獎盃)", length=24),
-            align("名譽值", length=8, dir="r"),
-            align("維修值", length=8, dir="r"),
-            align("完成時間", length=12, dir="r")))
+        print(f"河流競賽 Week {section_idx}")
+        print(
+            f"{align('部落 (獎盃)', length=24)}"
+            f"{align('名譽值', length=8, dir='r')}"
+            f"{align('維修值', length=8, dir='r')}"
+            f"{align('完成時間', length=12, dir='r')}"
+        )
         print("=" * 56)
         for clan in clans:
             if clan['tag'] == clan_tag:
@@ -174,11 +180,12 @@ class CRAPI(metaclass=singleton.Singleton):
                         datetime_wrapper.datetime_from_str(clan['finishTime'])))
             except Exception as e:
                 finish_time = "未完成"
-            print("{0}{1}{2}{3}".format(
-                align("{0} ({1})".format(name,score), length=24),
-                align(fame, length=8, dir="r"),
-                align(repair, length=8, dir="r"),
-                align(finish_time, length=12, dir="r")))
+            print(
+                f"{align(f'{name} ({score})', length=24)}"
+                f"{align(fame, length=8, dir='r')}"
+                f"{align(repair, length=8, dir='r')}"
+                f"{align(finish_time, length=12, dir='r')}"
+            )
 
         clan = race['clan']
         # Show our clan
@@ -193,11 +200,12 @@ class CRAPI(metaclass=singleton.Singleton):
                     datetime_wrapper.datetime_from_str(clan['finishTime'])))
         except Exception as e:
             finish_time = "未完成"
-        print("{0}{1}{2}{3}".format(
-            align("{0} ({1})".format(name,score), length=24),
-            align(fame, length=8, dir="r"),
-            align(repair, length=8, dir="r"),
-            align(finish_time, length=12, dir="r")))
+        print(
+            f"{align(f'{name} ({score})', length=24)}"
+            f"{align(fame, length=8, dir='r')}"
+            f"{align(repair, length=8, dir='r')}"
+            f"{align(finish_time, length=12, dir='r')}"
+        )
         # TODO: Show contribution of members
 
     def get_racelog(self, limit=0):
@@ -208,12 +216,12 @@ class CRAPI(metaclass=singleton.Singleton):
         racelog : list
             Order: later to former.
         """
-        query = "/clans/{0}".format(quote_plus(clan_tag)) + "/riverracelog" + \
-            ("?limit={0}".format(limit) if limit > 0 else "")
+        query = f"/clans/{quote_plus(clan_tag)}/riverracelog" + \
+            (f"?limit={limit}" if limit > 0 else "")
 
         racelog = None
         try:
-            racelog = self.__send_req(query)["items"]
+            racelog = self.__send_req(query)['items']
         except Exception as e:
             print("Error: Unable to retrieve racelog")
 
@@ -226,57 +234,56 @@ class CRAPI(metaclass=singleton.Singleton):
             return
         early_date_str = datetime_wrapper.get_date_str(
             datetime_wrapper.utc_to_local(
-                datetime_wrapper.datetime_from_str(racelog[len(racelog)-1]["createdDate"])))
+                datetime_wrapper.datetime_from_str(racelog[len(racelog)-1]['createdDate'])))
         late_date_str = datetime_wrapper.get_date_str(
             datetime_wrapper.utc_to_local(
-                datetime_wrapper.datetime_from_str(racelog[0]["createdDate"])))
+                datetime_wrapper.datetime_from_str(racelog[0]['createdDate'])))
 
-        print("河流競賽紀錄 {0} ~ {1}，共 {2} 筆".format(
-            early_date_str,
-            late_date_str,
-            len(racelog)))
+        print(f"河流競賽紀錄 {early_date_str} ~ {late_date_str}，共 {len(racelog)} 筆")
         print("=" * 56)
         for race in reversed(racelog):
-            season_id = race["seasonId"]
+            season_id = race['seasonId']
             created_date_str = datetime_wrapper.get_date_str(
                 datetime_wrapper.utc_to_local(
-                    datetime_wrapper.datetime_from_str(race["createdDate"])))
-            standings = race["standings"]
+                    datetime_wrapper.datetime_from_str(race['createdDate'])))
+            standings = race['standings']
             for standing in standings:
-                clan = standing["clan"]
-                if clan["tag"] == clan_tag:
-                    rank = standing["rank"]
-                    trophy_change = standing["trophyChange"]
-                    fame = clan["fame"]
-                    repair = clan["repairPoints"]
+                clan = standing['clan']
+                if clan['tag'] == clan_tag:
+                    rank = standing['rank']
+                    trophy_change = standing['trophyChange']
+                    fame = clan['fame']
+                    repair = clan['repairPoints']
                     try:
                         finished_date_str = datetime_wrapper.get_date_str(
                             datetime_wrapper.utc_to_local(
-                                datetime_wrapper.datetime_from_str(clan["finishTime"])))
+                                datetime_wrapper.datetime_from_str(clan['finishTime'])))
                     except Exception as e:
                         finished_date_str = "未完成"
-                    participants = clan["participants"]
+                    participants = clan['participants']
                     participants.sort(key = lambda p: p['fame']+p['repairPoints'], reverse = True)
 
-            print("河流競賽 {0}".format(season_id))
-            print("完成日期： {0}".format(finished_date_str))
-            print("結束日期： {0}".format(created_date_str))
-            print("名次： {0}".format(rank))
-            print("獎盃： {0}".format(trophy_change))
-            print("名譽(維修)： {0}({1})".format(fame, repair))
-            print("參加人數： {0}".format(len(participants)))
-            print("名單 (名譽/維修)：", end="")
+            print(
+                f"河流競賽 {season_id}\n"
+                f"完成日期： {finished_date_str}\n"
+                f"結束日期： {created_date_str}\n"
+                f"名次： {rank}\n"
+                f"獎盃： {trophy_change}\n"
+                f"名譽(維修)： {fame}({repair})\n"
+                f"參加人數： {len(participants)}\n"
+                "名單 (名譽/維修)："
+            )
             i = 0
             num_columns = 2
             for p in participants:
-                p_name = p["name"]
-                p_fame = str(p["fame"])
-                p_repair = str(p["repairPoints"])
+                p_name = p['name']
+                p_fame = str(p['fame'])
+                p_repair = str(p['repairPoints'])
                 if i % num_columns == 0:
-                    print("\n  ", end="")
+                    print("\n  " if i > 0 else "  ", end="")
                 print("{0} {1}  ".format(
                     align(p_name, length=20),
-                    align("("+p_fame+" / "+p_repair+")", length=16, dir="r")), end="")
+                    align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
                 i += 1
             print("")
             print("=" * 56)
