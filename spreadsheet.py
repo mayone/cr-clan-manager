@@ -99,7 +99,6 @@ class Sheet():
     def init(self):
         sheet = self.__check_sheet()
         header_cells = sheet.get_row(1, returnas='cells')
-        members = self.__crapi.get_members_dic().values()
 
         # Setup headers
         for header_cell in header_cells:
@@ -185,7 +184,6 @@ class Sheet():
             self.__sort_by_trophies(last_inserted_row_index)
 
     def update_trophies(self):
-        sheet = self.__check_sheet()
         tag_cells = self.__get_tag_cells()
         members = self.__crapi.get_members_dic()
         last_updated_row_index = 0
@@ -289,7 +287,8 @@ class Sheet():
             clan = standing["clan"]
             if clan["tag"] == crapi.clan_tag:
                 participants = clan["participants"]
-                participants.sort(key = lambda p: p['fame']+p['repairPoints'], reverse = True)
+                participants.sort(
+                    key=lambda p: p['fame']+p['repairPoints'], reverse=True)
                 break
 
         print("Filling race " + race_end_date)
