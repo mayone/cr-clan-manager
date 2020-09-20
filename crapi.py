@@ -101,7 +101,6 @@ class CRAPI(metaclass=singleton.Singleton):
         print("=" * 56)
         num_leader = num_coleader = num_elder = 0
         for member in members:
-            tag = member['tag']
             name = member['name']
             role = member['role']
             if role == "leader":
@@ -226,7 +225,7 @@ class CRAPI(metaclass=singleton.Singleton):
             print("Error: Unable to retrieve racelog")
 
         return racelog
-    
+
     def show_racelog(self, limit=0):
         racelog = self.get_racelog(limit)
         if not racelog or len(racelog) == 0:
@@ -261,7 +260,8 @@ class CRAPI(metaclass=singleton.Singleton):
                     except Exception as e:
                         finished_date_str = "未完成"
                     participants = clan['participants']
-                    participants.sort(key = lambda p: p['fame']+p['repairPoints'], reverse = True)
+                    participants.sort(
+                        key=lambda p: p['fame']+p['repairPoints'], reverse=True)
 
             print(
                 f"河流競賽 {season_id}\n"
