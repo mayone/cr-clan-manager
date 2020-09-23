@@ -188,7 +188,6 @@ class CRAPI(metaclass=singleton.Singleton):
 
         clan = race['clan']
         # Show our clan
-        # print(clan)
         name = clan['name']
         score = str(clan['clanScore'])
         fame = str(clan['fame'])
@@ -205,7 +204,25 @@ class CRAPI(metaclass=singleton.Singleton):
             f"{align(repair, length=8, dir='r')}"
             f"{align(finish_time, length=12, dir='r')}"
         )
-        # TODO: Show contribution of members
+        print("-" * 56)
+        # Show contribution of each members
+        print("名單 (名譽/維修)：")
+        participants = clan['participants']
+        participants.sort(
+            key=lambda p: p['fame']+p['repairPoints'], reverse=True)
+        i = 0
+        num_columns = 2
+        for p in participants:
+            p_name = p['name']
+            p_fame = str(p['fame'])
+            p_repair = str(p['repairPoints'])
+            if i % num_columns == 0:
+                print("\n  " if i > 0 else "  ", end="")
+            print("{0} {1}  ".format(
+                align(p_name, length=20),
+                align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
+            i += 1
+        print("")
 
     def get_racelog(self, limit=0):
         """Get racelog of the clan.
