@@ -295,9 +295,10 @@ class Sheet():
 
         season_id = race['seasonId']
         section_idx = race['sectionIndex']
+        week_idx = section_idx + 1
 
         header_cell = sheet.cell((1, col_index))
-        header_cell.value = "部落戰 " + "{0}-{1}".format(season_id, section_idx)
+        header_cell.value = "部落戰 " + "{0}-{1}".format(season_id, week_idx)
         header_cell.note = "結算日 " + race_end_date
         header_cell.color = Color.pink
 

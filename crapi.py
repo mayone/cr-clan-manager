@@ -154,10 +154,11 @@ class CRAPI(metaclass=singleton.Singleton):
             return
 
         section_idx = race['sectionIndex']
+        week_idx = section_idx + 1
 
         clans = race['clans']
         # Show other clans
-        print(f"河流競賽 Week {section_idx}")
+        print(f"河流競賽 Week {week_idx}")
         print(
             f"{align('部落 (獎盃)', length=24)}"
             f"{align('名譽值', length=8, dir='r')}"
@@ -259,6 +260,8 @@ class CRAPI(metaclass=singleton.Singleton):
         print("=" * 56)
         for race in reversed(racelog):
             season_id = race['seasonId']
+            section_idx = race['sectionIndex']
+            week_idx = section_idx + 1
             created_date_str = datetime_wrapper.get_date_str(
                 datetime_wrapper.utc_to_local(
                     datetime_wrapper.datetime_from_str(race['createdDate'])))
@@ -281,7 +284,7 @@ class CRAPI(metaclass=singleton.Singleton):
                         key=lambda p: p['fame']+p['repairPoints'], reverse=True)
 
             print(
-                f"河流競賽 {season_id}\n"
+                f"河流競賽 {season_id}-{week_idx}\n"
                 f"完成日期： {finished_date_str}\n"
                 f"結束日期： {created_date_str}\n"
                 f"名次： {rank}\n"
