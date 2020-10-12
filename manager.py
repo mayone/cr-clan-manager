@@ -51,8 +51,7 @@ show_cmd_help = (
     "Show (show)\n"
     "    members               Show all clan members\n"
     "    race                  Show current river race\n"
-    "    racelog [count]       Show racelog (specified number)\n"
-    "    warlog [count]        Show warlog (specified number)\n")
+    "    racelog [count]       Show racelog (specified number)\n")
 
 
 def show_handler(cmd):
@@ -79,19 +78,6 @@ def show_handler(cmd):
         else:
             crapi.show_racelog()
             return Status.OK
-    elif tok == "warlog":
-        # Deprecated
-        if len(cmd) > 0:
-            try:
-                count = int(cmd.pop(0))
-            except Exception as e:
-                print(show_cmd_help)
-                return Status.FAIL
-            crapi.show_warlog(count)
-            return Status.OK
-        else:
-            crapi.show_warlog()
-            return Status.OK
     else:
         print(show_cmd_help)
         return Status.FAIL
@@ -102,7 +88,6 @@ update_cmd_help = (
     "Update (update)\n"
     "    members               Update members of clan\n"
     "    trophy                Update trophies of members\n"
-    "    warlog                Update warlog\n"
     "    racelog               Update racelog\n"
     "    donation [date]       Update donations of members (specified date)\n")
 
@@ -118,10 +103,6 @@ def update_handler(cmd):
         return Status.OK
     elif tok == "trophy":
         sheet.update_trophies()
-        return Status.OK
-    elif tok == "warlog":
-        # Deprecated
-        sheet.update_warlog()
         return Status.OK
     elif tok == "racelog":
         sheet.update_racelog()
