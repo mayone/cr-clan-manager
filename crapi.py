@@ -211,9 +211,9 @@ class CRAPI(metaclass=singleton.Singleton):
         participants = clan['participants']
         participants.sort(
             key=lambda p: p['fame']+p['repairPoints'], reverse=True)
-        i = 0
+
         num_columns = 2
-        for p in participants:
+        for i, p in enumerate(participants):
             p_name = p['name']
             p_fame = str(p['fame'])
             p_repair = str(p['repairPoints'])
@@ -222,7 +222,6 @@ class CRAPI(metaclass=singleton.Singleton):
             print("{0} {1}  ".format(
                 align(p_name, length=20),
                 align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
-            i += 1
         print("")
 
     def get_racelog(self, limit=0):
@@ -293,9 +292,9 @@ class CRAPI(metaclass=singleton.Singleton):
                 f"參加人數： {len(participants)}\n"
                 "名單 (名譽/維修)："
             )
-            i = 0
+
             num_columns = 2
-            for p in participants:
+            for i, p in enumerate(participants):
                 p_name = p['name']
                 p_fame = str(p['fame'])
                 p_repair = str(p['repairPoints'])
@@ -304,6 +303,5 @@ class CRAPI(metaclass=singleton.Singleton):
                 print("{0} {1}  ".format(
                     align(p_name, length=20),
                     align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
-                i += 1
             print("")
             print("=" * 56)
