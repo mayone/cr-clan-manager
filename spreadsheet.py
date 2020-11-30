@@ -55,7 +55,7 @@ class Sheet():
 
         # Open a worksheet from spreadsheet
         spreadsheet = client.open('[皇室戰爭] 部落統計')
-        sheet = spreadsheet.worksheet(value=index)
+        sheet = spreadsheet.worksheet('index', index)
 
         return sheet
 
@@ -73,7 +73,9 @@ class Sheet():
 
     def __get_tag_cells(self):
         sheet = self.__check_sheet()
-        start = sheet.find('標籤')[0].neighbour('bottom')
+        tag_cell = sheet.find('標籤')[0]
+        tag_cell.link(sheet)
+        start = tag_cell.neighbour('bottom')
         end = start
         while end.neighbour('bottom').value != '':
             end = end.neighbour('bottom')
