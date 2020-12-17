@@ -218,6 +218,8 @@ class Sheet():
         header_cells = sheet.get_row(1, returnas='cells')
 
         # Search and set latest updated (genre, date, col_offset)
+        latest_updated_date = "00000000"
+        latest_updated_col_offset = 0
         latest_updated_genre = RecordGenre.UNKNOWN
         for header_cell in reversed(header_cells):
             if header_cell.note != None:
@@ -285,6 +287,7 @@ class Sheet():
             datetime_wrapper.utc_to_local(
                 datetime_wrapper.datetime_from_str(race['createdDate'])))
         standings = race["standings"]
+        participants = None
         for standing in standings:
             clan = standing["clan"]
             if clan["tag"] == crapi.clan_tag:
@@ -303,6 +306,9 @@ class Sheet():
         header_cell.value = "部落戰 " + "{0}-{1}".format(season_id, week_idx)
         header_cell.note = "結算日 " + race_end_date
         header_cell.color = Color.pink
+
+        if not participants:
+            return
 
         # Fill race records into sheet
         for i, p in enumerate(tqdm(participants)):
@@ -344,6 +350,8 @@ class Sheet():
         header_cells = sheet.get_row(1, returnas='cells')
 
         # Search and set latest updated (genre, date, col_offset)
+        latest_updated_date = None
+        latest_updated_col_offset = 0
         latest_updated_genre = RecordGenre.UNKNOWN
         for header_cell in reversed(header_cells):
             if header_cell.note != None:

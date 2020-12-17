@@ -265,6 +265,12 @@ class CRAPI(metaclass=singleton.Singleton):
                 datetime_wrapper.utc_to_local(
                     datetime_wrapper.datetime_from_str(race['createdDate'])))
             standings = race['standings']
+            finished_date_str = None
+            rank = None
+            trophy_change = None
+            fame = None
+            repair = None
+            participants = None
             for standing in standings:
                 clan = standing['clan']
                 if clan['tag'] == clan_tag:
@@ -281,6 +287,7 @@ class CRAPI(metaclass=singleton.Singleton):
                     participants = clan['participants']
                     participants.sort(
                         key=lambda p: p['fame']+p['repairPoints'], reverse=True)
+                    break
 
             print(
                 f"河流競賽 {season_id}-{week_idx}\n"
@@ -292,6 +299,9 @@ class CRAPI(metaclass=singleton.Singleton):
                 f"參加人數： {len(participants)}\n"
                 "名單 (名譽/維修)："
             )
+
+            if not participants:
+                return
 
             num_columns = 2
             for i, p in enumerate(participants):
