@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from enum import IntEnum, auto
+import os
 import sys
+import inspect
 import pprint
 import datetime
 from tqdm import tqdm
@@ -12,7 +14,7 @@ import crapi
 from utils import datetime_wrapper, alignment
 align = alignment.align
 
-
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 pp = pprint.PrettyPrinter()
 
 
@@ -49,13 +51,13 @@ class Sheet():
             Index of worksheet in spreadsheet (starts from 0).
         """
         try:
-            client = pygsheets.authorize(service_file='client_secret.json')
+            client = pygsheets.authorize(service_file=f"{currentdir}/client_secret.json")
         except Exception as e:
             return None
 
         # Open a worksheet from spreadsheet
-        spreadsheet = client.open('[皇室戰爭] 部落統計')
-        sheet = spreadsheet.worksheet('index', index)
+        spreadsheet = client.open("[皇室戰爭] 部落統計")
+        sheet = spreadsheet.worksheet("index", index)
 
         return sheet
 
@@ -63,8 +65,7 @@ class Sheet():
         if self.__sheet is not None:
             return self.__sheet
         else:
-            print(
-                "Please follow instructions in README to generate \"client_secret.json\" file")
+            print("Please follow instructions in README to generate \"client_secret.json\" file")
             sys.exit(1)
 
     def __set_frozen_cols(self, num_cols):

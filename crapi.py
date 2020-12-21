@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+import inspect
 import json
 try:
     # python 2
@@ -12,12 +15,14 @@ from utils import singleton, api, datetime_wrapper, alignment
 API = api.API
 align = alignment.align
 
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
 clan_tag = "#8V8CCV"
 
 
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
-        with open("crapi.json") as api_file:
+        with open(f"{currentdir}/crapi.json") as api_file:
             api_config = json.load(api_file)
         ver = api_config['version']
         jwt = api_config['token']
