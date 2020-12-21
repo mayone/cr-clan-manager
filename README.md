@@ -21,17 +21,26 @@
 ### [Clash Royale API](https://developer.clashroyale.com/#/)
 - Generate key and fill `token` into `crapi.json`
 
-## Setup Virtual Environment
+---
+## Run
+
+### Using Makefile
+```sh
+make run
+```
+
+### Using command (will activate venv)
+#### Setup Virtual Environment
 ```sh
 source venv_setup.sh
 ```
 
-## Execute
+#### Execute
 ```sh
 python manager.py
 ```
 
-## Exit Virtual Environment
+#### Exit Virtual Environment
 ```sh
 deactivate
 ```
