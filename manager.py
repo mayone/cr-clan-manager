@@ -2,8 +2,8 @@
 
 from enum import IntEnum, auto
 
-import crapi
-import spreadsheet
+from crapi import crapi
+from spreadsheet import spreadsheet
 
 
 # Status code of command_handler

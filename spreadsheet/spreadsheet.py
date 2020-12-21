@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 import pygsheets
 
-import crapi
+from crapi import crapi
 from utils import datetime_wrapper, alignment
 align = alignment.align
 
