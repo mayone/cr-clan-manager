@@ -8,8 +8,8 @@ except ImportError:
     # python 3
     from urllib.parse import quote_plus
 
-from api import API
-from utils import singleton, datetime_wrapper, alignment
+from utils import singleton, api, datetime_wrapper, alignment
+API = api.API
 align = alignment.align
 
 clan_tag = "#8V8CCV"
