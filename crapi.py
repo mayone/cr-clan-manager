@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import inspect
 import json
-try:
-    # python 2
-    from urllib import quote_plus
-except ImportError:
-    # python 3
-    from urllib.parse import quote_plus
+from urllib.parse import quote_plus
 
 from utils import singleton, api, datetime_wrapper, alignment
+
 API = api.API
 align = alignment.align
 
