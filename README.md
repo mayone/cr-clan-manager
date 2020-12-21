@@ -13,13 +13,13 @@
 	- Create service account
 		- Role as `Project Editor`
 		- Download JSON file
-5. Move JSON file to code directory `spreadsheet` and rename it to `client_secret.json`
+5. Move JSON file to code directory `config` and rename it to `client_secret.json`
 6. Share Google Sheet with service account
 	- Copy `client_email` inside `client_secret.json`
 	- Go to spreadsheet, `Share` it with that account and give it `edit` right
 
 ### [Clash Royale API](https://developer.clashroyale.com/#/)
-- Generate key and fill `token` into `crapi/crapi.json`
+- Generate key and fill `token` into `config/crapi.json`
 
 ---
 ## Run
