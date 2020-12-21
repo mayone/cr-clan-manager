@@ -17,7 +17,7 @@ clan_tag = "#8V8CCV"
 
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
-        with open(f"{currentdir}/crapi.json") as api_file:
+        with open(f"{currentdir}/../config/crapi.json") as api_file:
             api_config = json.load(api_file)
         ver = api_config['version']
         jwt = api_config['token']

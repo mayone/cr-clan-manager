@@ -51,7 +51,7 @@ class Sheet():
             Index of worksheet in spreadsheet (starts from 0).
         """
         try:
-            client = pygsheets.authorize(service_file=f"{currentdir}/client_secret.json")
+            client = pygsheets.authorize(service_file=f"{currentdir}/../config/client_secret.json")
         except Exception as e:
             return None
 
