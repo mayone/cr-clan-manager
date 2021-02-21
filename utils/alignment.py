@@ -76,6 +76,10 @@ def get_width(string):
     >>> get_width("")
     0
     """
+
+    if not string:
+        return 0
+
     width = 0
     #combining_char = u'[?([\u0300-\u036F]'
     for i in range(len(string)):
@@ -118,6 +122,10 @@ def align(string, dir='l', length=12):
     >>> align("你好", dir='r', length=8)
     '    你好'
     """
+
+    if not string:
+        return ''
+
     diff = length - get_width(string)
 
     if diff < 0:

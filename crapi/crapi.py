@@ -310,8 +310,8 @@ class CRAPI(metaclass=singleton.Singleton):
                 p_repair = str(p['repairPoints'])
                 if i % num_columns == 0:
                     print("\n  " if i > 0 else "  ", end="")
-                print("{0} {1}  ".format(
-                    align(p_name, length=20),
-                    align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
+                    print("{0} {1}  ".format(
+                        align(p_name, length=20),
+                        align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
             print("")
             print("=" * 56)
