@@ -7,8 +7,19 @@ VENV="env"
 REQ="requirements.txt"
 
 main () {
+  version_check
   venv_create
   venv_activate
+}
+
+# Check python3 and pip3
+version_check() {
+  if ! check_cmd python3; then
+    err "Please install python3"
+  fi
+  if ! check_cmd pip3; then
+    err "Please install pip3"
+  fi
 }
 
 # Create virtual environment
