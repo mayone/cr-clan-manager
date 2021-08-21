@@ -82,10 +82,10 @@ class CRAPI(metaclass=singleton.Singleton):
         return hash_members
 
     def show_members(self):
-        try:
-            members = self.get_members()
-        except Exception as e:
-            print("No member to display")
+        members = self.get_members()
+
+        if not members or len(members) == 0:
+            print("沒有可顯示的成員")
             return
 
         now = datetime_wrapper.get_utcnow()
@@ -245,9 +245,11 @@ class CRAPI(metaclass=singleton.Singleton):
 
     def show_racelog(self, limit=0):
         racelog = self.get_racelog(limit)
+
         if not racelog or len(racelog) == 0:
             print("沒有河流競賽紀錄")
             return
+
         early_date_str = datetime_wrapper.get_date_str(
             datetime_wrapper.utc_to_local(
                 datetime_wrapper.datetime_from_str(racelog[len(racelog)-1]['createdDate'])))

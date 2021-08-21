@@ -56,8 +56,11 @@ class Sheet():
             return None
 
         # Open a worksheet from spreadsheet
-        spreadsheet = client.open("[皇室戰爭] 部落統計")
-        sheet = spreadsheet.worksheet("index", index)
+        try:
+            spreadsheet = client.open("[皇室戰爭] 部落統計")
+            sheet = spreadsheet.worksheet("index", index)
+        except Exception as e:
+            return None
 
         return sheet
 
