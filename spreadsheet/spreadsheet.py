@@ -246,8 +246,7 @@ class Sheet():
         racelog_unrecorded_offset = -1
 
         # Set index to the unrecorded war in racelog
-        for i in range(len(racelog)):
-            race = racelog[i]
+        for i, race in enumerate(racelog):
             date = datetime_wrapper.get_date_str(
                 datetime_wrapper.utc_to_local(
                     datetime_wrapper.datetime_from_str(race['createdDate'])))
