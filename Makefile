@@ -18,4 +18,4 @@ run: init
 clean:
 	rm -rf ${VENV}
 
-.PHONY: init prepare_venv test run
+.PHONY: init prepare_venv test run clean
