@@ -1,4 +1,11 @@
-SHELL := /bin/bash
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	SHELL := /bin/bash
+endif
+ifeq ($(UNAME_S),Darwin)
+	SHELL := /bin/zsh
+endif
+
 VENV := env
 PYTHON := ${VENV}/bin/python
 
