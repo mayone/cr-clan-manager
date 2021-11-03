@@ -14,7 +14,8 @@ from crapi import crapi
 from utils import datetime_wrapper, alignment
 align = alignment.align
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+currentdir = os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe())))
 pp = pprint.PrettyPrinter()
 
 
@@ -51,7 +52,8 @@ class Sheet():
             Index of worksheet in spreadsheet (starts from 0).
         """
         try:
-            client = pygsheets.authorize(service_file=f"{currentdir}/../config/client_secret.json")
+            client = pygsheets.authorize(
+                service_file=f"{currentdir}/../config/client_secret.json")
         except Exception as e:
             return None
 
@@ -68,7 +70,8 @@ class Sheet():
         if self.__sheet is not None:
             return self.__sheet
         else:
-            print("Please follow instructions in README to generate \"client_secret.json\" file")
+            print(
+                "Please follow instructions in README to generate \"client_secret.json\" file")
             sys.exit(1)
 
     def __set_frozen_cols(self, num_cols):
@@ -296,7 +299,8 @@ class Sheet():
             if clan["tag"] == crapi.clan_tag:
                 participants = clan["participants"]
                 participants.sort(
-                    key=lambda p: p['fame']+p['repairPoints'], reverse=True)
+                    # key=lambda p: p['fame']+p['repairPoints'], reverse=True)
+                    key=lambda p: p['fame'], reverse=True)
                 break
 
         print("Filling race " + race_end_date)
@@ -328,11 +332,14 @@ class Sheet():
                 continue
 
             fame = p['fame']
-            repair = p['repairPoints']
+            decks = p['decksUsed']
+            # repair = p['repairPoints']
 
             # Form record and fill in
-            if (fame + repair > 0):
-                record = "{0} ({1})".format(str(fame), str(repair))
+            # if (fame + repair > 0):
+            #     record = "{0} ({1})".format(str(fame), str(repair))
+            if (fame + decks > 0):
+                record = "{0} ({1})".format(str(fame), str(decks))
             else:
                 record = "0"
                 # Mark with color red if didn't participate
