@@ -15,10 +15,12 @@ main () {
 # Check python3 and pip3
 version_check() {
   if ! check_cmd python3; then
-    err "Please install python3"
+    warn "Please install python3"
+    exit 1
   fi
   if ! check_cmd pip3; then
-    err "Please install pip3"
+    warn "Please install pip3"
+    exit 1
   fi
 }
 
@@ -73,6 +75,10 @@ ok() {
   printf "\r${CLEAR}  [ ${GREEN}OK${NC} ] $1\n"
 }
 
+warn() {
+  printf "\r${CLEAR}  [ ${YELLOW}!!${NC} ] $1\n"
+}
+
 err() {
   printf "\r${CLEAR}  [ ${RED}ERR${NC} ] $1\n"
   exit
@@ -83,7 +89,7 @@ check_cmd() {
 }
 
 check_exist() {
-  command ls "$1" >/dev/null 2>&1
+  test -e "$1" >/dev/null 2>&1
 }
 
 main "$@"
