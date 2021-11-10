@@ -336,21 +336,18 @@ class Sheet():
             # repair = p['repairPoints']
 
             # Form record and fill in
-            # if (fame + repair > 0):
-            #     record = "{0} ({1})".format(str(fame), str(repair))
-            if (fame + decks > 0):
-                record = "{0} ({1})".format(str(fame), str(decks))
-            else:
-                record = "0"
-                # Mark with color red if didn't participate
-                cell.color = Color.red
-                cell.note = "未參加"
+            record = f"{str(fame)} ({str(decks)})"
             cell.value = record
+
+            # Mark inactive members (didn't participate in war day)
+            if fame == 0:
+                cell.color = Color.red
+                cell.note = "未參加"      
 
             # Mark top 5 participants
             if (i < 5):
                 cell.color = Color.blue
-                cell.note = "ranking: {0}".format(i+1)
+                cell.note = f"ranking: {i+1}"
 
     def update_donations(self, date=None, delay=None):
         sheet = self.__check_sheet()
