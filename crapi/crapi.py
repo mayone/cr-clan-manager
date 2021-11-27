@@ -163,7 +163,6 @@ class CRAPI(metaclass=singleton.Singleton):
         print(
             f"{align('部落 (獎盃)', length=24)}"
             f"{align('名譽值', length=8, dir='r')}"
-            f"{align('維修值', length=8, dir='r')}"
             f"{align('完成時間', length=12, dir='r')}"
         )
         print("=" * 56)
@@ -174,7 +173,6 @@ class CRAPI(metaclass=singleton.Singleton):
             name = clan['name']
             score = str(clan['clanScore'])
             fame = str(clan['fame'])
-            repair = str(clan['repairPoints'])
             try:
                 finish_time = datetime_wrapper.get_date_str(
                     datetime_wrapper.utc_to_local(
@@ -184,7 +182,6 @@ class CRAPI(metaclass=singleton.Singleton):
             print(
                 f"{align(f'{name} ({score})', length=24)}"
                 f"{align(fame, length=8, dir='r')}"
-                f"{align(repair, length=8, dir='r')}"
                 f"{align(finish_time, length=12, dir='r')}"
             )
 
@@ -193,7 +190,6 @@ class CRAPI(metaclass=singleton.Singleton):
         name = clan['name']
         score = str(clan['clanScore'])
         fame = str(clan['fame'])
-        repair = str(clan['repairPoints'])
         try:
             finish_time = datetime_wrapper.get_date_str(
                 datetime_wrapper.utc_to_local(
@@ -203,29 +199,24 @@ class CRAPI(metaclass=singleton.Singleton):
         print(
             f"{align(f'{name} ({score})', length=24)}"
             f"{align(fame, length=8, dir='r')}"
-            f"{align(repair, length=8, dir='r')}"
             f"{align(finish_time, length=12, dir='r')}"
         )
         print("-" * 56)
         # Show contribution of each members
-        # print("名單 (名譽/維修)：")
         print("名單 (名譽/次數)：")
         participants = clan['participants']
         participants.sort(
-            # key=lambda p: p['fame']+p['repairPoints'], reverse=True)
             key=lambda p: p['fame'], reverse=True)
 
         num_columns = 2
         for i, p in enumerate(participants):
             p_name = p['name']
             p_fame = str(p['fame'])
-            # p_repair = str(p['repairPoints'])
             p_deck_used = str(p['decksUsed'])
             if i % num_columns == 0:
                 print("\n  " if i > 0 else "  ", end="")
             print("{0} {1}  ".format(
                 align(p_name, length=20),
-                # align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
                 align(f"({p_fame} / {p_deck_used})", length=16, dir="r")), end="")
         print("")
 
@@ -276,7 +267,6 @@ class CRAPI(metaclass=singleton.Singleton):
             rank = None
             trophy_change = None
             fame = None
-            # repair = None
             participants = None
             for standing in standings:
                 clan = standing['clan']
@@ -284,7 +274,6 @@ class CRAPI(metaclass=singleton.Singleton):
                     rank = standing['rank']
                     trophy_change = standing['trophyChange']
                     fame = clan['fame']
-                    # repair = clan['repairPoints']
                     try:
                         finished_date_str = datetime_wrapper.get_date_str(
                             datetime_wrapper.utc_to_local(
@@ -293,7 +282,6 @@ class CRAPI(metaclass=singleton.Singleton):
                         finished_date_str = "未完成"
                     participants = clan['participants']
                     participants.sort(
-                        # key=lambda p: p['fame']+p['repairPoints'], reverse=True)
                         key=lambda p: p['fame'], reverse=True)
                     break
 
@@ -303,10 +291,8 @@ class CRAPI(metaclass=singleton.Singleton):
                 f"結束日期： {created_date_str}\n"
                 f"名次： {rank}\n"
                 f"獎盃： {trophy_change}\n"
-                # f"名譽(維修)： {fame}({repair})\n"
                 f"名譽： {fame}\n"
                 f"參加人數： {len(participants)}\n"
-                # "名單 (名譽/維修)："
                 "名單 (名譽/次數)："
             )
 
@@ -317,7 +303,6 @@ class CRAPI(metaclass=singleton.Singleton):
             for i, p in enumerate(participants):
                 p_name = p['name']
                 p_fame = str(p['fame'])
-                # p_repair = str(p['repairPoints'])
                 # p_boat_attacks = str(p['boatAttacks'])
                 p_deck_used = str(p['decksUsed'])
                 # p_deck_used_today = str(p['decksUsedToday'])
@@ -325,7 +310,6 @@ class CRAPI(metaclass=singleton.Singleton):
                     print("\n  " if i > 0 else "  ", end="")
                 print("{0} {1}  ".format(
                     align(p_name, length=20),
-                    # align(f"({p_fame} / {p_repair})", length=16, dir="r")), end="")
                     align(f"({p_fame} / {p_deck_used})", length=16, dir="r")), end="")
             print("")
             print("=" * 56)

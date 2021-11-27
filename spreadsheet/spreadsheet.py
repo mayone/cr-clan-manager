@@ -299,7 +299,6 @@ class Sheet():
             if clan["tag"] == crapi.clan_tag:
                 participants = clan["participants"]
                 participants.sort(
-                    # key=lambda p: p['fame']+p['repairPoints'], reverse=True)
                     key=lambda p: p['fame'], reverse=True)
                 break
 
@@ -333,7 +332,6 @@ class Sheet():
 
             fame = p['fame']
             decks = p['decksUsed']
-            # repair = p['repairPoints']
 
             # Form record and fill in
             record = f"{str(fame)} ({str(decks)})"
@@ -342,7 +340,7 @@ class Sheet():
             # Mark inactive members (didn't participate in war day)
             if fame == 0:
                 cell.color = Color.red
-                cell.note = "未參加"      
+                cell.note = "未參加"
 
             # Mark top 5 participants
             if (i < 5):
