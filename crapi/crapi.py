@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import os
-import inspect
 import json
 from urllib.parse import quote_plus
 
+from config import config
 from utils import singleton, api, datetime_wrapper, alignment
 
 API = api.API
 align = alignment.align
-
-currentdir = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
 
 clan_tag = "#8V8CCV"
 
 
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
-        with open(f"{currentdir}/../config/crapi.json") as api_file:
+        with open(config.CRAPI_PATH) as api_file:
             api_config = json.load(api_file)
         ver = api_config['version']
         jwt = api_config['token']

@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from enum import IntEnum, auto
-import os
 import sys
-import inspect
 import pprint
 import datetime
 from tqdm import tqdm
 
 import pygsheets
 
+from config import config
 from crapi import crapi
 from utils import datetime_wrapper, alignment
-align = alignment.align
 
-currentdir = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
+align = alignment.align
 pp = pprint.PrettyPrinter()
 
 
@@ -53,7 +50,7 @@ class Sheet():
         """
         try:
             client = pygsheets.authorize(
-                service_file=f"{currentdir}/../config/client_secret.json")
+                service_file=config.CLIENT_SECRET_PATH)
         except Exception as e:
             return None
 
