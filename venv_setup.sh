@@ -41,12 +41,13 @@ venv_activate() {
     ok "Virtual environment activated"
   else
     err "Unable to find virtual environment"
-    exit 1
   fi
+
+  pip install --upgrade pip
 
   # Install packages by requirements file
   if check_exist "${REQ}"; then
-    pip3 install -r ${REQ}
+    pip install -r ${REQ}
     ok "Packages installed"
   fi
 }
@@ -68,7 +69,7 @@ CYAN='\033[0;36m'
 WHITE='\033[0;37m'
 
 info() {
-  printf "\r  [ ${BLUE}..${NC} ] $1\n"
+  printf "\r${CLEAR}  [ ${BLUE}..${NC} ] $1\n"
 }
 
 ok() {
