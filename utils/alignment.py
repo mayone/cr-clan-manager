@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from sys import platform as _platform
-import unicodedata
 import re
+import unicodedata
+from sys import platform as _platform
 
 
 def remove_ansi_escape(string):
@@ -32,8 +32,8 @@ def remove_ansi_escape(string):
     #             [@-~]   # Final byte
     #         )
     #     ''', re.VERBOSE)
-    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
-    return ansi_escape.sub('', string)
+    ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
+    return ansi_escape.sub("", string)
 
 
 def is_wide(ch):
@@ -53,13 +53,12 @@ def is_wide(ch):
     False
     """
     res = unicodedata.east_asian_width(ch)
-    if res == 'A':
+    if res == "A":
         # Ambiguous
         if _platform.startswith("linux"):
             # Linux
             return False
-        elif _platform.startswith("win") or \
-                _platform.startswith("cygwin"):
+        elif _platform.startswith("win") or _platform.startswith("cygwin"):
             # Windows
             return True
         elif _platform.startswith("darwin"):
@@ -68,19 +67,19 @@ def is_wide(ch):
         else:
             # Other OS
             return False
-    elif res == 'F':
+    elif res == "F":
         # Fullwidth
         return True
-    elif res == 'H':
+    elif res == "H":
         # Halfwidth
         return False
-    elif res == 'N':
+    elif res == "N":
         # Neutral (Not East Asian)
         return False
     elif res == "Na":
         # Narrow
         return False
-    elif res == 'W':
+    elif res == "W":
         # Wide
         return True
     else:
@@ -104,6 +103,9 @@ def get_width(string):
     >>> get_width("Hello")
     5
 
+    >>> get_width("❤️")
+    1
+
     >>> get_width("")
     0
     """
@@ -114,18 +116,26 @@ def get_width(string):
     string = remove_ansi_escape(string)
 
     width = 0
-    #combining_char = u'[?([\u0300-\u036F]'
+    # combining_char = "[?([\u0300-\u036f]"
+    variation_selector = "[?([\ufe00-\ufe0f]"
+
     for i in range(len(string)):
         # Combining character
         # if re.match(combining_char, string[i]):
         if unicodedata.combining(string[i]):
             if i == 0:
-                # If combining character in beginning of the line alone
+                # If at beginning of the line alone
+                ch_width = 1
+            else:
+                ch_width = 0
+        elif re.match(variation_selector, string[i]):
+            if i == 0:
+                # If at beginning of the line alone
                 ch_width = 1
             else:
                 ch_width = 0
         # Fullwidth character
-        elif (is_wide(string[i])):
+        elif is_wide(string[i]):
             ch_width = 2
         # Neutral character
         else:
@@ -136,7 +146,7 @@ def get_width(string):
     return width
 
 
-def align(string, dir='l', length=12):
+def align(string, dir="l", length=12):
     """Align string in given length.
 
     Parameters
@@ -157,19 +167,19 @@ def align(string, dir='l', length=12):
     """
 
     if not string:
-        return ''
+        return ""
 
     diff = length - get_width(string)
 
     if diff < 0:
-        #print("Error: alighment length smaller than actual string length")
+        # print("Error: alighment length smaller than actual string length")
         # return None
         diff = 1
 
-    if dir == 'l':
-        ret_str = string + ' ' * diff
-    elif dir == 'r':
-        ret_str = ' ' * diff + string
+    if dir == "l":
+        ret_str = string + " " * diff
+    elif dir == "r":
+        ret_str = " " * diff + string
     else:
         # No such direction
         return None
