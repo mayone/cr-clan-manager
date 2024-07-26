@@ -1,4 +1,8 @@
 {
-	"version": "v1",
-	"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImRkMDAwYzg1LTY5M2ItNDUyZS1hNDY0LWQ0OGYwNzJmYzIxMSIsImlhdCI6MTU5OTAxMjc2OSwic3ViIjoiZGV2ZWxvcGVyL2U2NDgwOTg4LTJjNjctZmFiMC00ZWYzLTk4N2JkNTQ1ZDlkMiIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxLjM0LjIxNy41NSJdLCJ0eXBlIjoiY2xpZW50In1dfQ.ychSFeiTKGK3jd2H1Y20sLJISmiW0SEm-C_maLy6ibONsmNGsR2VJO6SPydzqJTLEG4P_n7zmOQEgY4xjIwNDw"
+  "dev_uri": "https://developer.clashroyale.com/api",
+  "email": "",
+  "password": "",
+  "api_uri": "https://api.clashroyale.com",
+  "version": "v1",
+  "token": ""
 }

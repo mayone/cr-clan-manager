@@ -19,7 +19,8 @@ cmd_help = (
     "    init          Initialize (setup) the sheet\n"
     "    update        Update content of sheet\n"
     "    show          Show information of clan\n"
-    "    quit          Quit\n")
+    "    quit          Quit\n"
+)
 
 
 def command_handler(cmd):
@@ -51,7 +52,8 @@ show_cmd_help = (
     "Show (show)\n"
     "    members               Show all clan members\n"
     "    race                  Show current river race\n"
-    "    racelog [count]       Show racelog (specified number)\n")
+    "    racelog [count]       Show racelog (specified number)\n"
+)
 
 
 def show_handler(cmd):
@@ -70,7 +72,7 @@ def show_handler(cmd):
         if len(cmd) > 0:
             try:
                 count = int(cmd.pop(0))
-            except Exception as e:
+            except Exception:
                 print(show_cmd_help)
                 return Status.FAIL
             crapi.show_racelog(count)
@@ -89,7 +91,8 @@ update_cmd_help = (
     "    members               Update members of clan\n"
     "    trophy                Update trophies of members\n"
     "    racelog               Update racelog\n"
-    "    donation [date]       Update donations of members (specified date)\n")
+    "    donation [date]       Update donations of members (specified date)\n"
+)
 
 
 def update_handler(cmd):
