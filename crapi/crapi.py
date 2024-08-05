@@ -2,31 +2,36 @@
 
 import importlib.resources
 import json
+import os
 from datetime import datetime
 from urllib.parse import quote_plus
 
-from config import config
+from dotenv import load_dotenv, set_key
+
 from utils import alignment, api, datetime_wrapper, singleton
 
-API = api.API
 align = alignment.align
 
-clan_tag = "#8V8CCV"
+API = api.API
+ENV_PATH = ".env"
 
 
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self):
+        load_dotenv(override=True)
         # with open(config.CRAPI_PATH) as api_file:
         with importlib.resources.open_text("config", "crapi.json") as api_file:
             api_config = json.load(api_file)
             api_file.close()
         uri = api_config["api_uri"] or ""
         ver = api_config["version"] or "v1"
-        jwt = api_config["token"] or ""
+        jwt = os.environ.get("CRAPI_TOKEN") or ""
 
         self.__api = API()
         self.__api.set_url(f"{uri}/{ver}")
         self.__api.set_jwt(jwt)
+
+        self.__clan_tag = os.environ.get("CR_CLAN_TAG") or ""
 
     def __send_req(self, query):
         def send_query(retry=False):
@@ -60,8 +65,8 @@ class CRAPI(metaclass=singleton.Singleton):
             api_config = json.load(api_file)
             api_file.close()
         uri = api_config["dev_uri"] or ""
-        email = api_config["email"]
-        password = api_config["password"]
+        email = os.environ.get("CRAPI_EMAIL")
+        password = os.environ.get("CRAPI_PASSWORD")
 
         dev_api = API()
         dev_api.set_url(uri)
@@ -93,11 +98,8 @@ class CRAPI(metaclass=singleton.Singleton):
                     }
                 ),
             )
-            with open(config.CRAPI_PATH, "w") as api_file:
-                api_config["token"] = resp["key"]["key"]
-                json.dump(api_config, api_file, indent=2)
-                api_file.close()
-                self.__init__()
+            set_key(ENV_PATH, key_to_set="CRAPI_TOKEN", value_to_set=resp["key"]["key"])
+            self.__init__()
 
         except Exception as e:
             status, payload = e.args
@@ -121,7 +123,7 @@ class CRAPI(metaclass=singleton.Singleton):
         -------
         members : list
         """
-        query = f"/clans/{quote_plus(clan_tag)}/members"
+        query = f"/clans/{quote_plus(self.__clan_tag)}/members"
         try:
             resp = self.__send_req(query)
             members = resp["items"] if resp else None
@@ -139,7 +141,7 @@ class CRAPI(metaclass=singleton.Singleton):
         members : dictionary
             Use tag as key, member as value.
         """
-        query = f"/clans/{quote_plus(clan_tag)}/members"
+        query = f"/clans/{quote_plus(self.__clan_tag)}/members"
         try:
             resp = self.__send_req(query)
             members = resp["items"] if resp else None
@@ -227,7 +229,7 @@ class CRAPI(metaclass=singleton.Singleton):
         warlog : list
             Order: later to former.
         """
-        query = f"/clans/{quote_plus(clan_tag)}/currentriverrace"
+        query = f"/clans/{quote_plus(self.__clan_tag)}/currentriverrace"
         race = self.__send_req(query)
 
         if not race:
@@ -247,7 +249,7 @@ class CRAPI(metaclass=singleton.Singleton):
         )
         print("=" * 56)
         for clan in clans:
-            if clan["tag"] == clan_tag:
+            if clan["tag"] == self.__clan_tag:
                 # Skip our clan
                 continue
             name = clan["name"]
@@ -315,7 +317,7 @@ class CRAPI(metaclass=singleton.Singleton):
         racelog : list
             Order: later to former.
         """
-        query = f"/clans/{quote_plus(clan_tag)}/riverracelog" + (
+        query = f"/clans/{quote_plus(self.__clan_tag)}/riverracelog" + (
             f"?limit={limit}" if limit > 0 else ""
         )
 
@@ -366,7 +368,7 @@ class CRAPI(metaclass=singleton.Singleton):
             participants = None
             for standing in standings:
                 clan = standing["clan"]
-                if clan["tag"] == clan_tag:
+                if clan["tag"] == self.__clan_tag:
                     rank = standing["rank"]
                     trophy_change = standing["trophyChange"]
                     fame = clan["fame"]

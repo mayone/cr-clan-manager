@@ -1,8 +1,5 @@
 {
-  "dev_uri": "https://developer.clashroyale.com/api",
-  "email": "",
-  "password": "",
   "api_uri": "https://api.clashroyale.com",
-  "version": "v1",
-  "token": ""
+  "dev_uri": "https://developer.clashroyale.com/api",
+  "version": "v1"
 }

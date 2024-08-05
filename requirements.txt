@@ -1,6 +1,9 @@
 # utils/api
 requests
 
+# crapi
+python-dotenv
+
 # spreadsheet
 tqdm
 pygsheets
