@@ -116,6 +116,9 @@ class CRAPI(metaclass=singleton.Singleton):
                     f"  Response: {payload.text}\n"
                 )
 
+    def get_clan_tag(self):
+        return self.__clan_tag
+
     def get_members(self):
         """Get members of the clan.
 
