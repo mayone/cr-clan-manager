@@ -6,7 +6,7 @@ ifeq ($(UNAME_S),Darwin)
 	SHELL := /bin/zsh
 endif
 
-VENV := env
+VENV := .venv
 PYTHON := ${VENV}/bin/python
 
 init: prepare_venv

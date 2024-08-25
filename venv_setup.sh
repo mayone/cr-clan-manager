@@ -3,7 +3,7 @@
 # Setup virtual environment.
 
 # Variables
-VENV="env"
+VENV=".venv"
 REQ="requirements.txt"
 
 main () {
