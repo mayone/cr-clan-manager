@@ -106,6 +106,22 @@ def get_width(string):
     >>> get_width("❤️")
     1
 
+    >>> get_width("✊")
+    2
+
+    >>> get_width("✊🏾")
+    4
+
+    >>> get_width("🏳")
+    1
+
+    >>> get_width("🌈")
+    2
+
+    # #TODO: Fix this test
+    # >>> get_width("🏳️‍🌈")
+    # 3
+
     >>> get_width("")
     0
     """
