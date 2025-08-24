@@ -131,6 +131,7 @@ class Sheet:
         members = self.__crapi.get_members_dic()
 
         if not members:
+            print("Error: Failed to retrieve members. 'members' is None.")
             return
 
         sheet_tags = []
@@ -194,6 +195,10 @@ class Sheet:
         members = self.__crapi.get_members_dic()
         last_updated_row_index = 0
 
+        if not members:
+            print("Error: Failed to retrieve members. 'members' is None.")
+            return
+
         print("Updating trophies...")
 
         for tag_cell in tag_cells:
@@ -204,7 +209,7 @@ class Sheet:
                 print("Warning: member tag " + tag + " do not exists")
                 continue
             trophy_cell = tag_cell.neighbour("right")
-            if trophy_cell.value < str(member["bestTrophies"]):
+            if int(trophy_cell.value) < int(member["bestTrophies"]):
                 print(
                     "Update member {0} trophies: {1} -> {2}".format(
                         align(member["name"], length=32),
@@ -248,6 +253,10 @@ class Sheet:
 
         racelog = self.__crapi.get_racelog()
         racelog_unrecorded_offset = -1
+
+        if not racelog:
+            print("Error: Failed to retrieve racelog. 'racelog' is None.")
+            return
 
         # Set index to the unrecorded war in racelog
         for i, race in enumerate(racelog):
@@ -350,12 +359,16 @@ class Sheet:
             # Mark top 5 participants
             if i < 5:
                 cell.color = Color.blue
-                cell.note = f"ranking: {i+1}"
+                cell.note = f"ranking: {i + 1}"
 
     def update_donations(self, date=None, delay=None):
         sheet = self.__check_sheet()
         tag_cells = self.__get_tag_cells()
         members = self.__crapi.get_members_dic()
+
+        if not members:
+            print("Error: Failed to retrieve members. 'members' is None.")
+            return
 
         header_cells = sheet.get_row(1, returnas="cells")
 
