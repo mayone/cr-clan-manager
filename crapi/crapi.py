@@ -220,9 +220,9 @@ class CRAPI(metaclass=singleton.Singleton):
                 f"{align(trophies, length=6)}"
                 f"{align(last_seen, length=6, dir='r')}"
             )
-        print("首領:{0} 位".format(align(str(num_leader), length=6, dir="r")))
-        print("副首:{0} 位".format(align(str(num_coleader), length=6, dir="r")))
-        print("長老:{0} 位".format(align(str(num_elder), length=6, dir="r")))
+        print(f"首領:{align(str(num_leader), length=6, dir='r')} 位")
+        print(f"副首:{align(str(num_coleader), length=6, dir='r')} 位")
+        print(f"長老:{align(str(num_elder), length=6, dir='r')} 位")
 
     def show_race(self):
         """Show current river race of the clan.
@@ -304,10 +304,7 @@ class CRAPI(metaclass=singleton.Singleton):
             if i % num_columns == 0:
                 print("\n  " if i > 0 else "  ", end="")
             print(
-                "{0} {1}  ".format(
-                    align(p_name, length=20),
-                    align(f"({p_fame} / {p_deck_used})", length=16, dir="r"),
-                ),
+                f"{align(p_name, length=20)} {align(f'({p_fame} / {p_deck_used})', length=16, dir='r')}  ",
                 end="",
             )
         print("")
@@ -411,10 +408,7 @@ class CRAPI(metaclass=singleton.Singleton):
                 if i % num_columns == 0:
                     print("\n  " if i > 0 else "  ", end="")
                 print(
-                    "{0} {1}  ".format(
-                        align(p_name, length=20),
-                        align(f"({p_fame} / {p_deck_used})", length=16, dir="r"),
-                    ),
+                    f"{align(p_name, length=20)} {align(f'({p_fame} / {p_deck_used})', length=16, dir='r')}  ",
                     end="",
                 )
             print("")

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from datetime import datetime, timezone, timedelta
-
+from datetime import datetime, timedelta, timezone
 
 # ISO 8601 compact format
 iso8061comp_fmt = "%Y%m%dT%H%M%S.%fZ"
@@ -30,7 +29,8 @@ def dt_to_str(dt, fmt=iso8061comp_fmt):
 
 def datetime_from_str(iso8061comp_str):
     dt = datetime.strptime(iso8061comp_str, iso8061comp_fmt).replace(
-        tzinfo=timezone.utc)
+        tzinfo=timezone.utc
+    )
     return dt
 
 
@@ -41,8 +41,7 @@ def utc_to_local(dt):
 
 
 def utc_shift_tz(dt, hours=8):
-    dt = dt.astimezone(timezone(offset=timedelta(hours=hours))
-                       ).replace(tzinfo=None)
+    dt = dt.astimezone(timezone(offset=timedelta(hours=hours))).replace(tzinfo=None)
     return dt
 
 
@@ -52,14 +51,14 @@ def get_date_str(dt):
 
 def get_rounded_str(tdelta):
     if tdelta > timedelta(weeks=1):
-        rounded_str = "{0} 週".format(tdelta.days // 7)
+        rounded_str = f"{tdelta.days // 7} 週"
     elif tdelta > timedelta(days=1):
-        rounded_str = "{0} 天".format(tdelta.days)
+        rounded_str = f"{tdelta.days} 天"
     elif tdelta > timedelta(hours=1):
-        rounded_str = "{0} 時".format(tdelta.seconds // 3600)
+        rounded_str = f"{tdelta.seconds // 3600} 時"
     elif tdelta > timedelta(minutes=1):
-        rounded_str = "{0} 分".format(tdelta.seconds // 60)
+        rounded_str = f"{tdelta.seconds // 60} 分"
     else:
-        rounded_str = "{0} 秒".format(tdelta.seconds)
+        rounded_str = f"{tdelta.seconds} 秒"
 
     return rounded_str

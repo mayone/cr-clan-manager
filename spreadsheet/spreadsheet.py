@@ -157,7 +157,7 @@ class Sheet:
             # Insert empty row in the bottom
             sheet.insert_rows(tag_cells[len(tag_cells) - 1].row)
             sheet.delete_rows(row_index)
-            print("Member: {0} is removed".format(align(name, length=32)))
+            print(f"Member: {align(name, length=32)} is removed")
             insertable_row_index -= 1
 
         # Add new members
@@ -183,7 +183,7 @@ class Sheet:
                     row_to_fill[3].value = "0"
                 else:
                     row_to_fill[3].value = "0"
-                print("Member: {0} is added".format(align(member["name"], length=32)))
+                print(f"Member: {align(member['name'], length=32)} is added")
                 last_inserted_row_index = insertable_row_index
                 insertable_row_index += 1
 
@@ -211,11 +211,7 @@ class Sheet:
             trophy_cell = tag_cell.neighbour("right")
             if int(trophy_cell.value) < int(member["bestTrophies"]):
                 print(
-                    "Update member {0} trophies: {1} -> {2}".format(
-                        align(member["name"], length=32),
-                        trophy_cell.value,
-                        member["bestTrophies"],
-                    )
+                    f"Update member {align(member['name'], length=32)} trophies: {trophy_cell.value} -> {member['bestTrophies']}"
                 )
                 trophy_cell.value = str(member["bestTrophies"])
                 last_updated_row_index = trophy_cell.row
@@ -235,7 +231,7 @@ class Sheet:
         latest_updated_col_offset = 0
         latest_updated_genre = RecordGenre.UNKNOWN
         for header_cell in reversed(header_cells):
-            if header_cell.note != None:
+            if header_cell.note is not None:
                 try:
                     if header_cell.note.split()[0] == "結算日":
                         latest_updated_genre = RecordGenre.WAR
@@ -323,7 +319,7 @@ class Sheet:
         week_idx = section_idx + 1
 
         header_cell = sheet.cell((1, col_index))
-        header_cell.value = "部落戰 " + "{0}-{1}".format(season_id, week_idx)
+        header_cell.value = f"部落戰 {season_id}-{week_idx}"
         header_cell.note = "結算日 " + race_end_date
         header_cell.color = Color.pink
 
@@ -341,7 +337,7 @@ class Sheet:
             if row_index:
                 cell = sheet.cell((row_index, col_index))
             else:
-                print("Warning: member tag " + tag + " do not exists")
+                print(f"Warning: member tag {tag} does not exist")
                 continue
 
             fame = p["fame"]
@@ -377,7 +373,7 @@ class Sheet:
         latest_updated_col_offset = 0
         latest_updated_genre = RecordGenre.UNKNOWN
         for header_cell in reversed(header_cells):
-            if header_cell.note != None:
+            if header_cell.note is not None:
                 try:
                     if header_cell.note.split()[0] == "發起日":
                         latest_updated_genre = RecordGenre.WAR
@@ -420,7 +416,7 @@ class Sheet:
         header_cell.note = "統計日 " + full_date
         header_cell.color = Color.skin
 
-        print("Updating donations " + date)
+        print(f"Updating donations {date}")
 
         # Update donations of each member
         for tag_cell in tqdm(tag_cells):
@@ -428,7 +424,7 @@ class Sheet:
             try:
                 member = members[tag]
             except Exception:
-                print("Warning: member tag " + tag + " do not exists")
+                print(f"Warning: member tag {tag} do not exists")
                 continue
 
             row_index = tag_cell.row
