@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
+from collections.abc import Callable
 from enum import IntEnum, auto
 
-from crapi import crapi
-from spreadsheet import spreadsheet
+import display
+from crapi.crapi import CRAPI
+from spreadsheet.spreadsheet import Sheet
 
 
-# Status code of command_handler
 class Status(IntEnum):
     OK = auto()
     FAIL = auto()
     QUIT = auto()
 
 
-# Help message of commands
-cmd_help = (
+CMD_HELP = (
     "Commands\n"
     "    init          Initialize (setup) the sheet\n"
     "    update        Update content of sheet\n"
@@ -22,71 +22,14 @@ cmd_help = (
     "    quit          Quit\n"
 )
 
-
-def command_handler(cmd):
-    if len(cmd) == 0:
-        print(cmd_help)
-        return Status.FAIL
-
-    tok = cmd.pop(0)
-    if tok == "init":
-        sheet.init()
-        return Status.OK
-    elif tok == "update":
-        update_handler(cmd)
-        return Status.OK
-    elif tok == "show":
-        show_handler(cmd)
-        return Status.OK
-    elif tok == "quit":
-        return Status.QUIT
-    elif tok == "test":
-        return Status.OK
-    else:
-        print(cmd_help)
-        return Status.FAIL
-
-
-# Help message of command "show"
-show_cmd_help = (
+SHOW_HELP = (
     "Show (show)\n"
     "    members               Show all clan members\n"
     "    race                  Show current river race\n"
     "    racelog [count]       Show racelog (specified number)\n"
 )
 
-
-def show_handler(cmd):
-    if len(cmd) == 0:
-        print(show_cmd_help)
-        return Status.FAIL
-
-    tok = cmd.pop(0)
-    if tok == "members":
-        crapi.show_members()
-        return Status.OK
-    elif tok == "race":
-        crapi.show_race()
-        return Status.OK
-    elif tok == "racelog":
-        if len(cmd) > 0:
-            try:
-                count = int(cmd.pop(0))
-            except Exception:
-                print(show_cmd_help)
-                return Status.FAIL
-            crapi.show_racelog(count)
-            return Status.OK
-        else:
-            crapi.show_racelog()
-            return Status.OK
-    else:
-        print(show_cmd_help)
-        return Status.FAIL
-
-
-# Help message of command "update"
-update_cmd_help = (
+UPDATE_HELP = (
     "Update (update)\n"
     "    members               Update members of clan\n"
     "    trophy                Update trophies of members\n"
@@ -94,45 +37,119 @@ update_cmd_help = (
     "    donation [date]       Update donations of members (specified date)\n"
 )
 
+HandlerFn = Callable[[list[str], CRAPI, Sheet], Status]
 
-def update_handler(cmd):
-    if len(cmd) == 0:
-        print(update_cmd_help)
+
+def _show_members(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    display.show_members(cr.get_members())
+    return Status.OK
+
+
+def _show_race(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    display.show_race(cr.get_race(), cr.get_clan_tag())
+    return Status.OK
+
+
+def _show_racelog(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    if args:
+        try:
+            count = int(args.pop(0))
+        except ValueError:
+            print(SHOW_HELP)
+            return Status.FAIL
+        display.show_racelog(cr.get_racelog(count), cr.get_clan_tag())
+    else:
+        display.show_racelog(cr.get_racelog(), cr.get_clan_tag())
+    return Status.OK
+
+
+def _update_members(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    sheet.update_members()
+    return Status.OK
+
+
+def _update_trophy(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    sheet.update_trophies()
+    return Status.OK
+
+
+def _update_racelog(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    sheet.update_racelog()
+    return Status.OK
+
+
+def _update_donation(args: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    if args:
+        sheet.update_donations(date=args.pop(0))
+    else:
+        sheet.update_donations()
+    return Status.OK
+
+
+SHOW_COMMANDS: dict[str, HandlerFn] = {
+    "members": _show_members,
+    "race": _show_race,
+    "racelog": _show_racelog,
+}
+
+UPDATE_COMMANDS: dict[str, HandlerFn] = {
+    "members": _update_members,
+    "trophy": _update_trophy,
+    "racelog": _update_racelog,
+    "donation": _update_donation,
+}
+
+
+def _dispatch(
+    cmd: list[str],
+    dispatch_table: dict[str, HandlerFn],
+    help_text: str,
+    cr: CRAPI,
+    sheet: Sheet,
+) -> Status:
+    if not cmd:
+        print(help_text)
+        return Status.FAIL
+    tok = cmd.pop(0)
+    handler = dispatch_table.get(tok)
+    if handler:
+        return handler(cmd, cr, sheet)
+    print(help_text)
+    return Status.FAIL
+
+
+def command_handler(cmd: list[str], cr: CRAPI, sheet: Sheet) -> Status:
+    if not cmd:
+        print(CMD_HELP)
         return Status.FAIL
 
     tok = cmd.pop(0)
-    if tok == "members":
-        sheet.update_members()
+    if tok == "init":
+        sheet.init()
         return Status.OK
-    elif tok == "trophy":
-        sheet.update_trophies()
-        return Status.OK
-    elif tok == "racelog":
-        sheet.update_racelog()
-        return Status.OK
-    elif tok == "donation":
-        if len(cmd) > 0:
-            date = cmd.pop(0)
-            sheet.update_donations(date=date)
-            return Status.OK
-        else:
-            sheet.update_donations()
-            return Status.OK
+    elif tok == "update":
+        return _dispatch(cmd, UPDATE_COMMANDS, UPDATE_HELP, cr, sheet)
+    elif tok == "show":
+        return _dispatch(cmd, SHOW_COMMANDS, SHOW_HELP, cr, sheet)
+    elif tok == "quit":
+        return Status.QUIT
     else:
-        print(update_cmd_help)
+        print(CMD_HELP)
         return Status.FAIL
 
 
-if __name__ == "__main__":
-    # Open Google Sheet
-    sheet = spreadsheet.Sheet()
-    # Setup CR API
-    crapi = crapi.CRAPI()
+def main() -> None:
+    sheet = Sheet()
+    cr = CRAPI()
 
-    print("CR Clan Statictics Managing System")
+    print("CR Clan Statistics Managing System")
     while True:
         print("❯ ", end="")
         cmd = input().split()
-        ret = command_handler(cmd)
+        ret = command_handler(cmd, cr, sheet)
         if ret == Status.QUIT:
             break
+
+
+if __name__ == "__main__":
+    main()

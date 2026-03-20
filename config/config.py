@@ -1,15 +1,11 @@
-# -*- coding: utf-8 -*-
-
+import inspect
 import os
 import sys
-import inspect
 
-
-if not hasattr(sys.modules[__name__], '__file__'):
-    # Handle __file__ not defined
+if not hasattr(sys.modules[__name__], "__file__"):
     __file__ = inspect.getfile(inspect.currentframe())
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+dir_path: str = os.path.dirname(os.path.realpath(__file__))
 
-CLIENT_SECRET_PATH = f"{dir_path}/client_secret.json"
-CRAPI_PATH = f"{dir_path}/crapi.json"
+CLIENT_SECRET_PATH: str = f"{dir_path}/client_secret.json"
+CRAPI_PATH: str = f"{dir_path}/crapi.json"
