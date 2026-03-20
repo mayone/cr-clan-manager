@@ -1,13 +1,8 @@
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-	SHELL := /bin/bash
-endif
-ifeq ($(UNAME_S),Darwin)
-	SHELL := /bin/zsh
-endif
+SHELL := $(shell which bash)
 
 VENV := .venv
 PYTHON := ${VENV}/bin/python
+PIP := ${VENV}/bin/pip
 
 init: prepare_venv
 
@@ -16,8 +11,19 @@ prepare_venv: ${VENV}/bin/activate
 ${VENV}/bin/activate:
 	command source venv_setup.sh
 
-test:
-	# py.test tests
+install-dev: init
+	${PIP} install -r requirements-dev.txt
+
+lint: install-dev
+	${VENV}/bin/ruff check .
+	${VENV}/bin/ruff format --check .
+
+format: install-dev
+	${VENV}/bin/ruff check --fix .
+	${VENV}/bin/ruff format .
+
+test: install-dev
+	${PYTHON} -m pytest tests/ -v
 
 run: init
 	${PYTHON} manager.py
@@ -25,4 +31,4 @@ run: init
 clean:
 	rm -rf ${VENV}
 
-.PHONY: init prepare_venv test run clean
+.PHONY: init prepare_venv install-dev lint format test run clean
