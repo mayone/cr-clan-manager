@@ -1,64 +1,48 @@
-# -*- coding: utf-8 -*-
-
-import time
 from datetime import datetime, timedelta, timezone
 
-# ISO 8601 compact format
-iso8061comp_fmt = "%Y%m%dT%H%M%S.%fZ"
+ISO8601_COMPACT_FMT = "%Y%m%dT%H%M%S.%fZ"
 
 
-def get_now():
-    now = datetime.now()
-    return now
+def get_now() -> datetime:
+    return datetime.now()
 
 
-def get_utcnow():
-    now = datetime.now(timezone.utc)
-    return now
+def get_utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
-def get_utcnow_str(fmt=iso8061comp_fmt):
-    now_str = datetime.now(timezone.utc).strftime(fmt)
-    return now_str
+def get_utcnow_str(fmt: str = ISO8601_COMPACT_FMT) -> str:
+    return datetime.now(timezone.utc).strftime(fmt)
 
 
-def dt_to_str(dt, fmt=iso8061comp_fmt):
-    dt_str = dt.strftime(fmt)
-    return dt_str
+def dt_to_str(dt: datetime, fmt: str = ISO8601_COMPACT_FMT) -> str:
+    return dt.strftime(fmt)
 
 
-def datetime_from_str(iso8061comp_str):
-    dt = datetime.strptime(iso8061comp_str, iso8061comp_fmt).replace(
-        tzinfo=timezone.utc
-    )
-    return dt
+def datetime_from_str(iso8601_str: str) -> datetime:
+    return datetime.strptime(iso8601_str, ISO8601_COMPACT_FMT).replace(tzinfo=timezone.utc)
 
 
-def utc_to_local(dt):
-    epoch = time.mktime(dt.timetuple())
-    offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
-    return dt.replace(tzinfo=None) + offset
+def utc_to_local(dt: datetime) -> datetime:
+    return dt.astimezone(tz=None).replace(tzinfo=None)
 
 
-def utc_shift_tz(dt, hours=8):
-    dt = dt.astimezone(timezone(offset=timedelta(hours=hours))).replace(tzinfo=None)
-    return dt
+def utc_shift_tz(dt: datetime, hours: int = 8) -> datetime:
+    return dt.astimezone(timezone(offset=timedelta(hours=hours))).replace(tzinfo=None)
 
 
-def get_date_str(dt):
+def get_date_str(dt: datetime) -> str:
     return dt.strftime("%Y%m%d")
 
 
-def get_rounded_str(tdelta):
+def get_rounded_str(tdelta: timedelta) -> str:
     if tdelta > timedelta(weeks=1):
-        rounded_str = f"{tdelta.days // 7} 週"
+        return f"{tdelta.days // 7} 週"
     elif tdelta > timedelta(days=1):
-        rounded_str = f"{tdelta.days} 天"
+        return f"{tdelta.days} 天"
     elif tdelta > timedelta(hours=1):
-        rounded_str = f"{tdelta.seconds // 3600} 時"
+        return f"{tdelta.seconds // 3600} 時"
     elif tdelta > timedelta(minutes=1):
-        rounded_str = f"{tdelta.seconds // 60} 分"
+        return f"{tdelta.seconds // 60} 分"
     else:
-        rounded_str = f"{tdelta.seconds} 秒"
-
-    return rounded_str
+        return f"{tdelta.seconds} 秒"
