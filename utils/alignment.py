@@ -102,7 +102,11 @@ def get_width(string: str) -> int:
 
     width = 0
     for i in range(len(string)):
-        if unicodedata.combining(string[i]) or _VARIATION_SELECTOR_RE.match(string[i]) or _ZERO_WIDTH_RE.match(string[i]):
+        if (
+            unicodedata.combining(string[i])
+            or _VARIATION_SELECTOR_RE.match(string[i])
+            or _ZERO_WIDTH_RE.match(string[i])
+        ):
             ch_width = 1 if i == 0 else 0
         elif is_wide(string[i]):
             ch_width = 2
