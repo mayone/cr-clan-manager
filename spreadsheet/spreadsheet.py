@@ -8,7 +8,7 @@ import pygsheets
 from tqdm import tqdm
 
 from config import config
-from constants import ROLE_VALUE
+from constants import NAME_MAX_LENGTH, ROLE_VALUE
 from crapi import crapi
 from exceptions import SheetError
 from utils import alignment, datetime_wrapper
@@ -153,7 +153,7 @@ class Sheet:
             # Insert empty row in the bottom
             sheet.insert_rows(tag_cells[len(tag_cells) - 1].row)
             sheet.delete_rows(row_index)
-            print(f"Member: {align(name, length=32)} is removed")
+            print(f"Member: {align(name, length=NAME_MAX_LENGTH)} is removed")
             insertable_row_index -= 1
 
         # Add new members
@@ -170,7 +170,7 @@ class Sheet:
                 row_to_fill[3].value = value
                 if color_name:
                     row_to_fill[3].color = getattr(Color, color_name)
-                print(f"Member: {align(member['name'], length=32)} is added")
+                print(f"Member: {align(member['name'], length=NAME_MAX_LENGTH)} is added")
                 last_inserted_row_index = insertable_row_index
                 insertable_row_index += 1
 
@@ -197,7 +197,7 @@ class Sheet:
                 continue
             trophy_cell = tag_cell.neighbour("right")
             if int(trophy_cell.value) < int(member["bestTrophies"]):
-                name = align(member["name"], length=32)
+                name = align(member["name"], length=NAME_MAX_LENGTH)
                 old = trophy_cell.value
                 new = member["bestTrophies"]
                 print(f"Update member {name} trophies: {old} -> {new}")

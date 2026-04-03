@@ -12,6 +12,10 @@ ROLE_VALUE = {
     "member": ("0", None),
 }
 
+RANKING_MAX_LENGTH = 6
+NAME_MAX_LENGTH = 32
+ROLE_MAX_LENGTH = 6
+
 NOTE_GENRE_MAP = {
     "結算日": "WAR",
     "統計日": "DONATE",

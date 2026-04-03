@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from constants import ROLE_DISPLAY
+from constants import NAME_MAX_LENGTH, RANKING_MAX_LENGTH, ROLE_DISPLAY, ROLE_MAX_LENGTH
 from utils import alignment, datetime_wrapper
 
 align = alignment.align
@@ -28,7 +28,7 @@ def _print_participants(participants: list[dict[str, Any]]) -> None:
         if i % num_columns == 0:
             print("\n  " if i > 0 else "  ", end="")
         print(
-            f"{align(p_name, length=20)} "
+            f"{align(p_name, length=NAME_MAX_LENGTH)} "
             f"{align(f'({p_fame} / {p_deck_used})', length=16, direction='r')}  ",
             end="",
         )
@@ -44,9 +44,9 @@ def show_members(members: list[dict[str, Any]] | None) -> None:
 
     print(f"部落成員，共 {len(members)} 名")
     print(
-        f"{align('排名', length=6)}"
-        f"{align('名字', length=32)}"
-        f"{align('職位', length=6)}"
+        f"{align('排名', length=RANKING_MAX_LENGTH)}"
+        f"{align('名字', length=NAME_MAX_LENGTH)}"
+        f"{align('職位', length=ROLE_MAX_LENGTH)}"
         f"{align('獎盃', length=6)}"
         f"{align('上線', length=6, direction='r')}"
     )
@@ -75,9 +75,9 @@ def show_members(members: list[dict[str, Any]] | None) -> None:
         trophies = str(member["trophies"])
 
         print(
-            f"{align(clan_rank, length=6)}"
-            f"{align(name, length=32)}"
-            f"{align(display_role, length=6)}"
+            f"{align(clan_rank, length=RANKING_MAX_LENGTH)}"
+            f"{align(name, length=NAME_MAX_LENGTH)}"
+            f"{align(display_role, length=ROLE_MAX_LENGTH)}"
             f"{align(trophies, length=6)}"
             f"{align(last_seen, length=6, direction='r')}"
         )
@@ -126,7 +126,7 @@ def show_race(race: dict[str, Any] | None, clan_tag: str) -> None:
         f"{align(finish_time, length=12, direction='r')}"
     )
     print("-" * DISPLAY_WIDTH)
-    print("名單 (名譽/次數)：")
+    print("名單 (名譽/次數):")
     participants = clan["participants"]
     participants.sort(key=lambda p: p["fame"], reverse=True)
     _print_participants(participants)
@@ -174,13 +174,13 @@ def show_racelog(racelog: list[dict[str, Any]] | None, clan_tag: str) -> None:
 
         print(
             f"河流競賽 {season_id}-{week_idx}\n"
-            f"完成日期： {finished_date_str}\n"
-            f"結束日期： {created_date_str}\n"
-            f"名次： {rank}\n"
-            f"獎盃： {trophy_change}\n"
-            f"名譽： {fame}\n"
-            f"參加人數： {len(participants) if participants else 0}\n"
-            "名單 (名譽/次數)："
+            f"完成日期: {finished_date_str}\n"
+            f"結束日期: {created_date_str}\n"
+            f"名次: {rank}\n"
+            f"獎盃: {trophy_change}\n"
+            f"名譽: {fame}\n"
+            f"參加人數: {len(participants) if participants else 0}\n"
+            "名單 (名譽/次數):"
         )
 
         if not participants:
