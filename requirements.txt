@@ -1,9 +1,9 @@
 # utils/api
-requests
+requests>=2.32,<3
 
 # crapi
-python-dotenv
+python-dotenv>=1.2,<2
 
 # spreadsheet
-tqdm
-pygsheets
+tqdm>=4.67,<5
+pygsheets>=2.0,<3

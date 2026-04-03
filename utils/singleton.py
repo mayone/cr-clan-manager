@@ -1,11 +1,14 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+from typing import Any
+
 
 class Singleton(type):
-    """ A metaclass that creates a Singleton base class when called. """
-    _instances = {}
+    """A metaclass that creates a Singleton base class when called."""
 
-    def __call__(cls, *args, **kwargs):
+    _instances: dict[type, Any] = {}
+
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls not in cls._instances:
-            cls._instances[cls] = super(
-                Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]

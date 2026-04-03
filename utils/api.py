@@ -1,89 +1,72 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+from typing import Any
 
 import requests
-from requests.exceptions import HTTPError
+
+from exceptions import APIError
+
+REQUEST_TIMEOUT = 30
 
 
 class API:
-    def __init__(self):
+    def __init__(self) -> None:
         headers = {"Accept": "application/json"}
-        self.__base_url = ""
-        self.__jwt = None
+        self.__base_url: str = ""
+        self.__jwt: str | None = None
         self.__session = requests.session()
         self.__session.headers.update(headers)
 
-    def set_url(self, url):
+    def set_url(self, url: str) -> None:
         self.__base_url = url
 
-    def set_jwt(self, jwt):
+    def set_jwt(self, jwt: str) -> None:
         self.__jwt = jwt
         headers = {"Authorization": f"Bearer {self.__jwt}"}
         self.__session.headers.update(headers)
 
-    def get_external_ip(self):
+    def get_external_ip(self) -> str:
         req = "https://ipecho.net/plain"
-        try:
-            resp = requests.get(req)
-        except HTTPError as http_err:
-            print(f"API request HTTP error: {http_err}")
-            raise
-        except Exception as err:
-            print(f"API request other error: {err}")
-            raise
-
+        resp = requests.get(req, timeout=REQUEST_TIMEOUT)
         return resp.text
 
-    def GET(self, query):
+    def GET(self, query: str) -> dict[str, Any]:
         session = self.__session
         req = self.__base_url + query
-
-        try:
-            resp = session.get(req)
-        except HTTPError as http_err:
-            print(f"API request HTTP error: {http_err}")
-            raise
-        except Exception as err:
-            print(f"API request other error: {err}")
-            raise
+        resp = session.get(req, timeout=REQUEST_TIMEOUT)
 
         status = resp.status_code
         try:
             payload = resp.json()
-        except Exception as err:
-            print(f"Payload parsing error: {err}")
-            raise Exception(status, resp)
+        except ValueError as err:
+            raise APIError(status, resp) from err
 
         if not resp.ok:
-            raise Exception(status, payload)
+            raise APIError(status, payload)
 
         return payload
 
-    def POST(self, query, data=None):
+    def POST(self, query: str, data: str | dict | None = None) -> dict[str, Any]:
         session = self.__session
         req = self.__base_url + query
 
-        try:
-            if isinstance(data, dict):
-                resp = session.post(req, json=data)
-            else:
-                resp = session.post(
-                    req, data=data, headers={"Content-Type": "application/json"}
-                )
-        except HTTPError as http_err:
-            print(f"API request HTTP error: {http_err}")
-            raise
-        except Exception as err:
-            print(f"API request other error: {err}")
-            raise
+        if isinstance(data, dict):
+            resp = session.post(req, json=data, timeout=REQUEST_TIMEOUT)
+        else:
+            resp = session.post(
+                req,
+                data=data,
+                headers={"Content-Type": "application/json"},
+                timeout=REQUEST_TIMEOUT,
+            )
 
         status = resp.status_code
         try:
             payload = resp.json()
-        except Exception as err:
-            print(f"Payload parsing error: {err}")
-            raise Exception(status, resp)
+        except ValueError as err:
+            raise APIError(status, resp) from err
 
         if not resp.ok:
-            raise Exception(status, payload)
+            raise APIError(status, payload)
 
         return payload

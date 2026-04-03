@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import datetime
-import pprint
-import sys
 from enum import IntEnum, auto
+from typing import Any
 
 import pygsheets
 from tqdm import tqdm
 
 from config import config
+from constants import NAME_MAX_LENGTH, ROLE_VALUE
 from crapi import crapi
+from exceptions import SheetError
 from utils import alignment, datetime_wrapper
 
 align = alignment.align
-pp = pprint.PrettyPrinter()
 
 
 class Color:
@@ -36,11 +36,11 @@ class RecordGenre(IntEnum):
 
 
 class Sheet:
-    def __init__(self, index=0):
+    def __init__(self, index: int = 0) -> None:
         self.__sheet = self.__open_sheet(index)
         self.__crapi = crapi.CRAPI()
 
-    def __open_sheet(self, index):
+    def __open_sheet(self, index: int) -> Any:
         """Open worksheet.
 
         Parameters
@@ -62,20 +62,19 @@ class Sheet:
 
         return sheet
 
-    def __check_sheet(self):
+    def __check_sheet(self) -> Any:
         if self.__sheet is not None:
             return self.__sheet
-        else:
-            print(
-                'Please follow instructions in README to generate "client_secret.json" file'
-            )
-            sys.exit(1)
+        raise SheetError(
+            "Sheet not available. Please follow instructions in README "
+            'to generate "client_secret.json" file'
+        )
 
-    def __set_frozen_cols(self, num_cols):
+    def __set_frozen_cols(self, num_cols: int) -> None:
         sheet = self.__check_sheet()
         sheet.frozen_cols = num_cols
 
-    def __get_tag_cells(self):
+    def __get_tag_cells(self) -> list[Any]:
         sheet = self.__check_sheet()
         tag_cell = sheet.find("標籤")[0]
         tag_cell.link(sheet)
@@ -84,14 +83,11 @@ class Sheet:
         while end.neighbour("bottom").value != "":
             end = end.neighbour("bottom")
 
-        tag_cells = [
-            list[0]
-            for list in sheet.range(start.label + ":" + end.label, returnas="cells")
-        ]
+        tag_cells = [row[0] for row in sheet.range(start.label + ":" + end.label, returnas="cells")]
 
         return tag_cells
 
-    def __sort_by_trophies(self, last_updated_row_index=51):
+    def __sort_by_trophies(self, last_updated_row_index: int = 51) -> None:
         sheet = self.__check_sheet()
 
         print("Sorting by trophies...")
@@ -105,7 +101,7 @@ class Sheet:
 
         print("Sorted by trophies")
 
-    def init(self):
+    def init(self) -> None:
         sheet = self.__check_sheet()
         header_cells = sheet.get_row(1, returnas="cells")
 
@@ -125,7 +121,7 @@ class Sheet:
         # Add members
         self.update_members()
 
-    def update_members(self):
+    def update_members(self) -> None:
         sheet = self.__check_sheet()
         tag_cells = self.__get_tag_cells()
         members = self.__crapi.get_members_dic()
@@ -144,7 +140,7 @@ class Sheet:
             tag = tag_cell.value
             try:
                 member = members[tag]
-            except Exception:
+            except KeyError:
                 name = tag_cell.neighbour("left").value
                 member_to_remove.append((name, tag_cell.row))
                 continue
@@ -157,7 +153,7 @@ class Sheet:
             # Insert empty row in the bottom
             sheet.insert_rows(tag_cells[len(tag_cells) - 1].row)
             sheet.delete_rows(row_index)
-            print(f"Member: {align(name, length=32)} is removed")
+            print(f"Member: {align(name, length=NAME_MAX_LENGTH)} is removed")
             insertable_row_index -= 1
 
         # Add new members
@@ -170,27 +166,18 @@ class Sheet:
                 row_to_fill[1].value = tag
                 row_to_fill[2].value = member["bestTrophies"]
                 role = member["role"]
-                if role == "leader":
-                    row_to_fill[3].value = "3"
-                    row_to_fill[3].color = Color.orange
-                elif role == "coLeader":
-                    row_to_fill[3].value = "2"
-                    row_to_fill[3].color = Color.d_blue
-                elif role == "elder":
-                    row_to_fill[3].value = "1"
-                    row_to_fill[3].color = Color.d_green
-                elif role == "member":
-                    row_to_fill[3].value = "0"
-                else:
-                    row_to_fill[3].value = "0"
-                print(f"Member: {align(member['name'], length=32)} is added")
+                value, color_name = ROLE_VALUE.get(role, ("0", None))
+                row_to_fill[3].value = value
+                if color_name:
+                    row_to_fill[3].color = getattr(Color, color_name)
+                print(f"Member: {align(member['name'], length=NAME_MAX_LENGTH)} is added")
                 last_inserted_row_index = insertable_row_index
                 insertable_row_index += 1
 
         if last_inserted_row_index > 0:
             self.__sort_by_trophies(last_inserted_row_index)
 
-    def update_trophies(self):
+    def update_trophies(self) -> None:
         tag_cells = self.__get_tag_cells()
         members = self.__crapi.get_members_dic()
         last_updated_row_index = 0
@@ -205,14 +192,15 @@ class Sheet:
             tag = tag_cell.value
             try:
                 member = members[tag]
-            except Exception:
-                print("Warning: member tag " + tag + " do not exists")
+            except KeyError:
+                print(f"Warning: member tag {tag} does not exist")
                 continue
             trophy_cell = tag_cell.neighbour("right")
             if int(trophy_cell.value) < int(member["bestTrophies"]):
-                print(
-                    f"Update member {align(member['name'], length=32)} trophies: {trophy_cell.value} -> {member['bestTrophies']}"
-                )
+                name = align(member["name"], length=NAME_MAX_LENGTH)
+                old = trophy_cell.value
+                new = member["bestTrophies"]
+                print(f"Update member {name} trophies: {old} -> {new}")
                 trophy_cell.value = str(member["bestTrophies"])
                 last_updated_row_index = trophy_cell.row
 
@@ -222,29 +210,46 @@ class Sheet:
         else:
             print("Trophies are already up to date")
 
-    def update_racelog(self):
-        sheet = self.__check_sheet()
-        header_cells = sheet.get_row(1, returnas="cells")
+    def _find_latest_record(
+        self, header_cells: list[Any], genre_keywords: dict[str, RecordGenre]
+    ) -> tuple[RecordGenre, str | None, int]:
+        """Scan header cells from right to find the latest record metadata.
 
-        # Search and set latest updated (genre, date, col_offset)
-        latest_updated_date = "00000000"
-        latest_updated_col_offset = 0
-        latest_updated_genre = RecordGenre.UNKNOWN
+        Parameters
+        ----------
+        header_cells : list
+            Row 1 cells from the sheet.
+        genre_keywords : dict
+            Mapping of note prefix -> RecordGenre, e.g. {"結算日": WAR, "統計日": DONATE}.
+
+        Returns
+        -------
+        (genre, date, col_offset) : tuple
+        """
+        sheet = self.__check_sheet()
         for header_cell in reversed(header_cells):
             if header_cell.note is not None:
                 try:
-                    if header_cell.note.split()[0] == "結算日":
-                        latest_updated_genre = RecordGenre.WAR
-                    elif header_cell.note.split()[0] == "統計日":
-                        latest_updated_genre = RecordGenre.DONATE
-                    latest_updated_date = header_cell.note.split()[1]
-                    latest_updated_col_offset = sheet.cols - header_cell.col
-                    break
-                except Exception:
+                    parts = header_cell.note.split()
+                    genre = genre_keywords.get(parts[0], RecordGenre.UNKNOWN)
+                    if genre != RecordGenre.UNKNOWN:
+                        return genre, parts[1], sheet.cols - header_cell.col
+                except (IndexError, AttributeError):
                     continue
+        return RecordGenre.UNKNOWN, None, 0
+
+    def update_racelog(self) -> bool | None:
+        sheet = self.__check_sheet()
+        header_cells = sheet.get_row(1, returnas="cells")
+
+        genre, latest_updated_date, latest_updated_col_offset = self._find_latest_record(
+            header_cells, {"結算日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
+        )
+        latest_updated_genre = genre
 
         if latest_updated_genre == RecordGenre.UNKNOWN:
             latest_updated_col_offset = sheet.cols - 4
+        if latest_updated_date is None:
             latest_updated_date = "00000000"
 
         racelog = self.__crapi.get_racelog()
@@ -261,11 +266,8 @@ class Sheet:
                     datetime_wrapper.datetime_from_str(race["createdDate"])
                 )
             )
-            if date > latest_updated_date:
-                racelog_unrecorded_offset = i
-            elif (
-                date == latest_updated_date
-                and latest_updated_genre == RecordGenre.DONATE
+            if date > latest_updated_date or (
+                date == latest_updated_date and latest_updated_genre == RecordGenre.DONATE
             ):
                 racelog_unrecorded_offset = i
             else:
@@ -283,7 +285,7 @@ class Sheet:
 
         return True
 
-    def __fill_race(self, col_offset, race):
+    def __fill_race(self, col_offset: int, race: dict[str, Any]) -> None:
         """Fill specified race records to the target column.
 
         Parameters
@@ -299,9 +301,7 @@ class Sheet:
 
         # Get info from race
         race_end_date = datetime_wrapper.get_date_str(
-            datetime_wrapper.utc_to_local(
-                datetime_wrapper.datetime_from_str(race["createdDate"])
-            )
+            datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(race["createdDate"]))
         )
         standings = race["standings"]
         participants = None
@@ -357,7 +357,7 @@ class Sheet:
                 cell.color = Color.blue
                 cell.note = f"ranking: {i + 1}"
 
-    def update_donations(self, date=None, delay=None):
+    def update_donations(self, date: str | None = None) -> None:
         sheet = self.__check_sheet()
         tag_cells = self.__get_tag_cells()
         members = self.__crapi.get_members_dic()
@@ -368,22 +368,11 @@ class Sheet:
 
         header_cells = sheet.get_row(1, returnas="cells")
 
-        # Search and set latest updated (genre, date, col_offset)
-        latest_updated_date = None
-        latest_updated_col_offset = 0
-        latest_updated_genre = RecordGenre.UNKNOWN
-        for header_cell in reversed(header_cells):
-            if header_cell.note is not None:
-                try:
-                    if header_cell.note.split()[0] == "發起日":
-                        latest_updated_genre = RecordGenre.WAR
-                    elif header_cell.note.split()[0] == "統計日":
-                        latest_updated_genre = RecordGenre.DONATE
-                    latest_updated_date = header_cell.note.split()[1]
-                    latest_updated_col_offset = sheet.cols - header_cell.col
-                    break
-                except Exception:
-                    continue
+        latest_updated_genre, latest_updated_date, latest_updated_col_offset = (
+            self._find_latest_record(
+                header_cells, {"發起日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
+            )
+        )
 
         now = datetime_wrapper.get_now()
         if date:
@@ -395,10 +384,7 @@ class Sheet:
             date = now.strftime("%m/%d")
             full_date = datetime_wrapper.get_date_str(now)
 
-        if (
-            latest_updated_date == full_date
-            and latest_updated_genre == RecordGenre.DONATE
-        ):
+        if latest_updated_date == full_date and latest_updated_genre == RecordGenre.DONATE:
             # Update the existed record
             col_index = sheet.cols - latest_updated_col_offset
         else:
@@ -407,7 +393,7 @@ class Sheet:
                 # Insert and inherit from the last column
                 sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
                 latest_updated_col_offset += 1
-            # Record in new coulumn
+            # Record in new column
             col_offset = latest_updated_col_offset - 1
             col_index = sheet.cols - col_offset
 
@@ -423,16 +409,11 @@ class Sheet:
             tag = tag_cell.value
             try:
                 member = members[tag]
-            except Exception:
-                print(f"Warning: member tag {tag} do not exists")
+            except KeyError:
+                print(f"Warning: member tag {tag} does not exist")
                 continue
 
             row_index = tag_cell.row
 
             cell = sheet.cell((row_index, col_index))
             cell.value = str(member["donations"])
-
-    def __print_all(self):
-        sheet = self.__check_sheet()
-        result = sheet.get_all_values(include_tailing_empty_rows=False)
-        pp.pprint(result)
