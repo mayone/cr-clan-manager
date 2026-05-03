@@ -26,7 +26,7 @@ test: install-dev
 	${PYTHON} -m pytest tests/ -v
 
 run: init
-	${PYTHON} manager.py
+	${PYTHON} main.py
 
 clean:
 	rm -rf ${VENV}
