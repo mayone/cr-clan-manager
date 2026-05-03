@@ -36,8 +36,15 @@ source venv_setup.sh
 ```
 
 #### Execute
+Interactive REPL:
 ```sh
-python manager.py
+python main.py
+```
+
+One-shot subcommands:
+```sh
+python main.py show members
+python main.py update donation 20260501
 ```
 
 #### Exit Virtual Environment
