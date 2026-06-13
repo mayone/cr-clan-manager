@@ -102,7 +102,6 @@ class Sheet:
         """
         sheet = self.__check_sheet()
         if col_offset <= 1:
-            # Insert and inherit from the last column
             sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
             col_offset += 1
         return col_offset
