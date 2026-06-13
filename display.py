@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 from constants import NAME_MAX_LENGTH, RANKING_MAX_LENGTH, ROLE_DISPLAY, ROLE_MAX_LENGTH
@@ -15,6 +16,18 @@ def _format_finish_time(raw_time: str | None) -> str:
         return datetime_wrapper.utc_str_to_local_date_str(raw_time)
     except (KeyError, ValueError, TypeError):
         return "未完成"
+
+
+def _print_clan_standing(clan: dict[str, Any]) -> None:
+    name = clan["name"]
+    score = str(clan["clanScore"])
+    fame = str(clan["fame"])
+    finish_time = _format_finish_time(clan.get("finishTime"))
+    print(
+        f"{align(f'{name} ({score})', length=24)}"
+        f"{align(fame, length=8, direction='r')}"
+        f"{align(finish_time, length=12, direction='r')}"
+    )
 
 
 def _print_participants(participants: list[dict[str, Any]]) -> None:
@@ -49,17 +62,11 @@ def show_members(members: list[dict[str, Any]] | None) -> None:
         f"{align('上線', length=6, direction='r')}"
     )
     print("=" * DISPLAY_WIDTH)
-    num_leader = num_coleader = num_elder = 0
+    role_counts = Counter(member["role"] for member in members)
     for member in members:
         name = member["name"]
         role = member["role"]
         display_role = ROLE_DISPLAY.get(role, role)
-        if role == "leader":
-            num_leader += 1
-        elif role == "coLeader":
-            num_coleader += 1
-        elif role == "elder":
-            num_elder += 1
 
         try:
             last_seen = member["lastSeen"]
@@ -79,9 +86,9 @@ def show_members(members: list[dict[str, Any]] | None) -> None:
             f"{align(trophies, length=6)}"
             f"{align(last_seen, length=6, direction='r')}"
         )
-    print(f"首領:{align(str(num_leader), length=6, direction='r')} 位")
-    print(f"副首:{align(str(num_coleader), length=6, direction='r')} 位")
-    print(f"長老:{align(str(num_elder), length=6, direction='r')} 位")
+    print(f"首領:{align(str(role_counts['leader']), length=6, direction='r')} 位")
+    print(f"副首:{align(str(role_counts['coLeader']), length=6, direction='r')} 位")
+    print(f"長老:{align(str(role_counts['elder']), length=6, direction='r')} 位")
 
 
 def show_race(race: dict[str, Any] | None, clan_tag: str) -> None:
@@ -103,26 +110,10 @@ def show_race(race: dict[str, Any] | None, clan_tag: str) -> None:
     for clan in clans:
         if clan["tag"] == clan_tag:
             continue
-        name = clan["name"]
-        score = str(clan["clanScore"])
-        fame = str(clan["fame"])
-        finish_time = _format_finish_time(clan.get("finishTime"))
-        print(
-            f"{align(f'{name} ({score})', length=24)}"
-            f"{align(fame, length=8, direction='r')}"
-            f"{align(finish_time, length=12, direction='r')}"
-        )
+        _print_clan_standing(clan)
 
     clan = race["clan"]
-    name = clan["name"]
-    score = str(clan["clanScore"])
-    fame = str(clan["fame"])
-    finish_time = _format_finish_time(clan.get("finishTime"))
-    print(
-        f"{align(f'{name} ({score})', length=24)}"
-        f"{align(fame, length=8, direction='r')}"
-        f"{align(finish_time, length=12, direction='r')}"
-    )
+    _print_clan_standing(clan)
     print("-" * DISPLAY_WIDTH)
     print("名單 (名譽/次數):")
     participants = clan["participants"]
