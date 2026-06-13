@@ -30,11 +30,8 @@ class API:
         resp = requests.get(req, timeout=REQUEST_TIMEOUT)
         return resp.text
 
-    def GET(self, query: str) -> dict[str, Any]:
-        session = self.__session
-        req = self.__base_url + query
-        resp = session.get(req, timeout=REQUEST_TIMEOUT)
-
+    @staticmethod
+    def _parse_response(resp: requests.Response) -> dict[str, Any]:
         status = resp.status_code
         try:
             payload = resp.json()
@@ -46,27 +43,21 @@ class API:
 
         return payload
 
+    def GET(self, query: str) -> dict[str, Any]:
+        resp = self.__session.get(self.__base_url + query, timeout=REQUEST_TIMEOUT)
+        return self._parse_response(resp)
+
     def POST(self, query: str, data: str | dict | None = None) -> dict[str, Any]:
-        session = self.__session
         req = self.__base_url + query
 
         if isinstance(data, dict):
-            resp = session.post(req, json=data, timeout=REQUEST_TIMEOUT)
+            resp = self.__session.post(req, json=data, timeout=REQUEST_TIMEOUT)
         else:
-            resp = session.post(
+            resp = self.__session.post(
                 req,
                 data=data,
                 headers={"Content-Type": "application/json"},
                 timeout=REQUEST_TIMEOUT,
             )
 
-        status = resp.status_code
-        try:
-            payload = resp.json()
-        except ValueError as err:
-            raise APIError(status, resp) from err
-
-        if not resp.ok:
-            raise APIError(status, payload)
-
-        return payload
+        return self._parse_response(resp)
