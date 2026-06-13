@@ -12,9 +12,7 @@ DISPLAY_WIDTH = 56
 
 def _format_finish_time(raw_time: str | None) -> str:
     try:
-        return datetime_wrapper.get_date_str(
-            datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(raw_time))
-        )
+        return datetime_wrapper.utc_str_to_local_date_str(raw_time)
     except (KeyError, ValueError, TypeError):
         return "未完成"
 
@@ -137,14 +135,8 @@ def show_racelog(racelog: list[dict[str, Any]] | None, clan_tag: str) -> None:
         print("沒有河流競賽紀錄")
         return
 
-    early_date_str = datetime_wrapper.get_date_str(
-        datetime_wrapper.utc_to_local(
-            datetime_wrapper.datetime_from_str(racelog[-1]["createdDate"])
-        )
-    )
-    late_date_str = datetime_wrapper.get_date_str(
-        datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(racelog[0]["createdDate"]))
-    )
+    early_date_str = datetime_wrapper.utc_str_to_local_date_str(racelog[-1]["createdDate"])
+    late_date_str = datetime_wrapper.utc_str_to_local_date_str(racelog[0]["createdDate"])
 
     print(f"河流競賽紀錄 {early_date_str} ~ {late_date_str}，共 {len(racelog)} 筆")
     print("=" * DISPLAY_WIDTH)
@@ -152,9 +144,7 @@ def show_racelog(racelog: list[dict[str, Any]] | None, clan_tag: str) -> None:
         season_id = race["seasonId"]
         section_idx = race["sectionIndex"]
         week_idx = section_idx + 1
-        created_date_str = datetime_wrapper.get_date_str(
-            datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(race["createdDate"]))
-        )
+        created_date_str = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
         standings = race["standings"]
         finished_date_str = None
         rank = None

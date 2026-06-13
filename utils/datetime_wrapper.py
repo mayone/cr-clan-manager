@@ -35,6 +35,11 @@ def get_date_str(dt: datetime) -> str:
     return dt.strftime("%Y%m%d")
 
 
+def utc_str_to_local_date_str(iso8601_str: str) -> str:
+    """Convert a UTC ISO 8601 compact string to a local date string (YYYYMMDD)."""
+    return get_date_str(utc_to_local(datetime_from_str(iso8601_str)))
+
+
 def get_rounded_str(tdelta: timedelta) -> str:
     if tdelta > timedelta(weeks=1):
         return f"{tdelta.days // 7} 週"

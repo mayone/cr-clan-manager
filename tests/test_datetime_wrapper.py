@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from utils.datetime_wrapper import (
     datetime_from_str,
     dt_to_str,
@@ -7,6 +9,7 @@ from utils.datetime_wrapper import (
     get_now,
     get_rounded_str,
     get_utcnow,
+    utc_str_to_local_date_str,
     utc_to_local,
 )
 
@@ -70,6 +73,19 @@ class TestGetDateStr:
     def test_single_digit_month(self):
         dt = datetime(2023, 1, 5)
         assert get_date_str(dt) == "20230105"
+
+
+class TestUtcStrToLocalDateStr:
+    """Equivalence classes: valid ISO 8601 compact string, invalid format."""
+
+    def test_matches_composed_conversion(self):
+        raw = "20230615T120000.000000Z"
+        expected = get_date_str(utc_to_local(datetime_from_str(raw)))
+        assert utc_str_to_local_date_str(raw) == expected
+
+    def test_invalid_format_raises(self):
+        with pytest.raises(ValueError):
+            utc_str_to_local_date_str("not-a-date")
 
 
 class TestGetRoundedStr:

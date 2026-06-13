@@ -261,11 +261,7 @@ class Sheet:
 
         # Set index to the unrecorded war in racelog
         for i, race in enumerate(racelog):
-            date = datetime_wrapper.get_date_str(
-                datetime_wrapper.utc_to_local(
-                    datetime_wrapper.datetime_from_str(race["createdDate"])
-                )
-            )
+            date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
             if date > latest_updated_date or (
                 date == latest_updated_date and latest_updated_genre == RecordGenre.DONATE
             ):
@@ -300,9 +296,7 @@ class Sheet:
         tag_cells = self.__get_tag_cells()
 
         # Get info from race
-        race_end_date = datetime_wrapper.get_date_str(
-            datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(race["createdDate"]))
-        )
+        race_end_date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
         standings = race["standings"]
         participants = None
         for standing in standings:
