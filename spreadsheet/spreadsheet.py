@@ -87,6 +87,26 @@ class Sheet:
 
         return tag_cells
 
+    def __ensure_empty_last_col(self, col_offset: int) -> int:
+        """Insert a column before the last one when it is occupied, keeping the last column empty.
+
+        Parameters
+        ----------
+        col_offset : int
+            Offset of the latest record column from the last column.
+
+        Returns
+        -------
+        col_offset : int
+            Updated offset after the potential insertion.
+        """
+        sheet = self.__check_sheet()
+        if col_offset <= 1:
+            # Insert and inherit from the last column
+            sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
+            col_offset += 1
+        return col_offset
+
     def __sort_by_trophies(self, last_updated_row_index: int = 51) -> None:
         sheet = self.__check_sheet()
 
@@ -130,37 +150,31 @@ class Sheet:
             print("Error: Failed to retrieve members. 'members' is None.")
             return
 
-        sheet_tags = []
-        insertable_row_index = tag_cells[len(tag_cells) - 1].row + 1
+        sheet_tags = set()
+        insertable_row_index = tag_cells[-1].row + 1
         last_inserted_row_index = 0
 
         # Put none exist members in list
         member_to_remove = []
         for tag_cell in tag_cells:
             tag = tag_cell.value
-            try:
-                member = members[tag]
-            except KeyError:
+            if tag not in members:
                 name = tag_cell.neighbour("left").value
                 member_to_remove.append((name, tag_cell.row))
                 continue
-            sheet_tags.append(tag)
+            sheet_tags.add(tag)
 
         # Remove none exist members in reversed order
-        for member in reversed(member_to_remove):
-            name = member[0]
-            row_index = member[1]
+        for name, row_index in reversed(member_to_remove):
             # Insert empty row in the bottom
-            sheet.insert_rows(tag_cells[len(tag_cells) - 1].row)
+            sheet.insert_rows(tag_cells[-1].row)
             sheet.delete_rows(row_index)
             print(f"Member: {align(name, length=NAME_MAX_LENGTH)} is removed")
             insertable_row_index -= 1
 
         # Add new members
-        tags = members.keys()
-        for tag in tags:
+        for tag, member in members.items():
             if tag not in sheet_tags:
-                member = members[tag]
                 row_to_fill = sheet.get_row(insertable_row_index, returnas="cells")
                 row_to_fill[0].value = member["name"]
                 row_to_fill[1].value = tag
@@ -271,11 +285,7 @@ class Sheet:
 
         for i in range(racelog_unrecorded_offset, -1, -1):
             race = racelog[i]
-            # Keep the last column empty
-            if latest_updated_col_offset <= 1:
-                # Insert and inherit from the last column
-                sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
-                latest_updated_col_offset += 1
+            latest_updated_col_offset = self.__ensure_empty_last_col(latest_updated_col_offset)
             self.__fill_race(latest_updated_col_offset - 1, race)
             latest_updated_col_offset -= 1
 
@@ -321,18 +331,14 @@ class Sheet:
             return
 
         # Fill race records into sheet
+        tag_to_row = {tag_cell.value: tag_cell.row for tag_cell in tag_cells}
         for i, p in enumerate(tqdm(participants)):
             tag = p["tag"]
-            row_index = 0
-            for tag_cell in tag_cells:
-                if tag == tag_cell.value:
-                    row_index = tag_cell.row
-                    break
-            if row_index:
-                cell = sheet.cell((row_index, col_index))
-            else:
+            row_index = tag_to_row.get(tag)
+            if row_index is None:
                 print(f"Warning: member tag {tag} does not exist")
                 continue
+            cell = sheet.cell((row_index, col_index))
 
             fame = p["fame"]
             decks = p["decksUsed"]
@@ -382,11 +388,7 @@ class Sheet:
             # Update the existed record
             col_index = sheet.cols - latest_updated_col_offset
         else:
-            # Keep the last column empty
-            if latest_updated_col_offset <= 1:
-                # Insert and inherit from the last column
-                sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
-                latest_updated_col_offset += 1
+            latest_updated_col_offset = self.__ensure_empty_last_col(latest_updated_col_offset)
             # Record in new column
             col_offset = latest_updated_col_offset - 1
             col_index = sheet.cols - col_offset
