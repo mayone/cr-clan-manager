@@ -1,4 +1,4 @@
-from spreadsheet.spreadsheet import RecordGenre, Sheet
+from spreadsheet.spreadsheet import RECORD_NOTE_GENRES, RecordGenre, Sheet
 
 
 class FakeCell:
@@ -114,3 +114,32 @@ class TestBackfillRegression:
         racelog_dates = ["20260608", "20260601", "20260525", "20260518", "20260511"]
         # All three wars after 0518 get filled, not just the one newer than the donation.
         assert Sheet._leading_unrecorded(racelog_dates, cutoff) == 3
+
+
+class TestFindLatestRecord:
+    """Right-most record found by the donation flow's header scan.
+
+    Regression: update_donations looked up wars with the prefix "發起日", which is
+    never written (wars are noted "結算日"). A war column at the right edge was then
+    invisible, so a new donation overwrote it. Both readers and writers now share
+    RECORD_NOTE_GENRES, so the prefixes cannot drift.
+
+    Equivalence classes: right-most column is a war, no record at all.
+    """
+
+    def test_recognizes_rightmost_war_column(self):
+        cells = [
+            FakeCell(5, "統計日 20260610"),
+            FakeCell(6, "結算日 20260613"),  # war is the right-most record
+            FakeCell(7, None),  # empty last column
+        ]
+        genre, date, offset = Sheet._find_latest_record(cells, RECORD_NOTE_GENRES, total_cols=7)
+        assert genre == RecordGenre.WAR
+        assert date == "20260613"
+        assert offset == 1  # 7 - 6
+
+    def test_no_record_returns_unknown(self):
+        cells = [FakeCell(4, "首領 3\n副首 2"), FakeCell(7, None)]
+        genre, date, offset = Sheet._find_latest_record(cells, RECORD_NOTE_GENRES, total_cols=7)
+        assert genre == RecordGenre.UNKNOWN
+        assert date is None

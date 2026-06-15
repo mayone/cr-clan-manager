@@ -35,6 +35,13 @@ class RecordGenre(IntEnum):
     DONATE = auto()
 
 
+# Note prefixes written on record-column headers. Shared by both readers and writers
+# so the read/write prefixes can never drift apart.
+WAR_NOTE_PREFIX = "結算日"
+DONATE_NOTE_PREFIX = "統計日"
+RECORD_NOTE_GENRES = {WAR_NOTE_PREFIX: RecordGenre.WAR, DONATE_NOTE_PREFIX: RecordGenre.DONATE}
+
+
 class Sheet:
     def __init__(self, index: int = 0) -> None:
         self.__sheet = self.__open_sheet(index)
@@ -223,8 +230,9 @@ class Sheet:
         else:
             print("Trophies are already up to date")
 
+    @staticmethod
     def _find_latest_record(
-        self, header_cells: list[Any], genre_keywords: dict[str, RecordGenre]
+        header_cells: list[Any], genre_keywords: dict[str, RecordGenre], total_cols: int
     ) -> tuple[RecordGenre, str | None, int]:
         """Scan header cells from right to find the latest record metadata.
 
@@ -233,20 +241,21 @@ class Sheet:
         header_cells : list
             Row 1 cells from the sheet.
         genre_keywords : dict
-            Mapping of note prefix -> RecordGenre, e.g. {"結算日": WAR, "統計日": DONATE}.
+            Mapping of note prefix -> RecordGenre, e.g. RECORD_NOTE_GENRES.
+        total_cols : int
+            Total column count of the sheet, used to compute the column offset.
 
         Returns
         -------
         (genre, date, col_offset) : tuple
         """
-        sheet = self.__check_sheet()
         for header_cell in reversed(header_cells):
             if header_cell.note is not None:
                 try:
                     parts = header_cell.note.split()
                     genre = genre_keywords.get(parts[0], RecordGenre.UNKNOWN)
                     if genre != RecordGenre.UNKNOWN:
-                        return genre, parts[1], sheet.cols - header_cell.col
+                        return genre, parts[1], total_cols - header_cell.col
                 except (IndexError, AttributeError):
                     continue
         return RecordGenre.UNKNOWN, None, 0
@@ -260,14 +269,13 @@ class Sheet:
         list of (col_index, genre, date) in left-to-right column order, one entry per
         column whose note marks a war ("結算日") or donation ("統計日") record.
         """
-        genre_by_prefix = {"結算日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
         columns = []
         for cell in header_cells:
             note = cell.note
             if not note:
                 continue
             parts = note.split()
-            genre = genre_by_prefix.get(parts[0]) if parts else None
+            genre = RECORD_NOTE_GENRES.get(parts[0]) if parts else None
             if genre is None:
                 continue
             try:
@@ -377,7 +385,7 @@ class Sheet:
 
         header_cell = sheet.cell((1, col_index))
         header_cell.value = f"部落戰 {season_id}-{week_idx}"
-        header_cell.note = "結算日 " + race_end_date
+        header_cell.note = f"{WAR_NOTE_PREFIX} {race_end_date}"
         header_cell.color = Color.pink
 
         if not participants:
@@ -422,9 +430,7 @@ class Sheet:
         header_cells = sheet.get_row(1, returnas="cells")
 
         latest_updated_genre, latest_updated_date, latest_updated_col_offset = (
-            self._find_latest_record(
-                header_cells, {"發起日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
-            )
+            self._find_latest_record(header_cells, RECORD_NOTE_GENRES, sheet.cols)
         )
 
         now = datetime_wrapper.get_now()
@@ -448,7 +454,7 @@ class Sheet:
 
         header_cell = sheet.cell((1, col_index))
         header_cell.value = "捐贈 " + date
-        header_cell.note = "統計日 " + full_date
+        header_cell.note = f"{DONATE_NOTE_PREFIX} {full_date}"
         header_cell.color = Color.skin
 
         print(f"Updating donations {date}")
