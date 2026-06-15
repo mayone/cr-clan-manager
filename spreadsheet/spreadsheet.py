@@ -251,57 +251,111 @@ class Sheet:
                     continue
         return RecordGenre.UNKNOWN, None, 0
 
+    @staticmethod
+    def _record_columns(header_cells: list[Any]) -> list[tuple[int, RecordGenre, str]]:
+        """Extract dated war/donation columns from the header row.
+
+        Returns
+        -------
+        list of (col_index, genre, date) in left-to-right column order, one entry per
+        column whose note marks a war ("結算日") or donation ("統計日") record.
+        """
+        genre_by_prefix = {"結算日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
+        columns = []
+        for cell in header_cells:
+            note = cell.note
+            if not note:
+                continue
+            parts = note.split()
+            genre = genre_by_prefix.get(parts[0]) if parts else None
+            if genre is None:
+                continue
+            try:
+                columns.append((cell.col, genre, parts[1]))
+            except IndexError:
+                continue
+        return columns
+
+    @staticmethod
+    def _latest_war_date(record_columns: list[tuple[int, RecordGenre, str]]) -> str:
+        """Date of the right-most war record, or "00000000" when none exists.
+
+        Donations are intentionally ignored so a recent donation cannot block the
+        back-fill of older, still-unrecorded wars.
+        """
+        latest = "00000000"
+        for _col, genre, date in record_columns:
+            if genre == RecordGenre.WAR:
+                latest = date
+        return latest
+
+    @staticmethod
+    def _leading_unrecorded(dates: list[str], latest_war_date: str) -> int:
+        """Count the leading races (racelog is newest-first) that are newer than the
+        latest recorded war, i.e. the wars not yet written to the sheet."""
+        count = 0
+        for date in dates:
+            if date > latest_war_date:
+                count += 1
+            else:
+                break
+        return count
+
+    @staticmethod
+    def _insert_col_for_date(
+        record_columns: list[tuple[int, RecordGenre, str]], date: str, append_col: int
+    ) -> int:
+        """Column index at which to insert a war column dated `date` so columns stay
+        ordered by date (the existing column at that index shifts right). Returns
+        `append_col` when `date` is newer than every existing record."""
+        for col, _genre, col_date in record_columns:
+            if col_date > date:
+                return col
+        return append_col
+
     def update_racelog(self) -> bool | None:
         sheet = self.__check_sheet()
-        header_cells = sheet.get_row(1, returnas="cells")
-
-        genre, latest_updated_date, latest_updated_col_offset = self._find_latest_record(
-            header_cells, {"結算日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
-        )
-        latest_updated_genre = genre
-
-        if latest_updated_genre == RecordGenre.UNKNOWN:
-            latest_updated_col_offset = sheet.cols - 4
-        if latest_updated_date is None:
-            latest_updated_date = "00000000"
-
         racelog = self.__crapi.get_racelog()
-        racelog_unrecorded_offset = -1
 
         if not racelog:
             print("Error: Failed to retrieve racelog. 'racelog' is None.")
             return
 
-        # Set index to the unrecorded war in racelog
-        for i, race in enumerate(racelog):
-            date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
-            if date > latest_updated_date or (
-                date == latest_updated_date and latest_updated_genre == RecordGenre.DONATE
-            ):
-                racelog_unrecorded_offset = i
-            else:
-                break
+        header_cells = sheet.get_row(1, returnas="cells")
+        latest_war_date = self._latest_war_date(self._record_columns(header_cells))
+        dates = [datetime_wrapper.utc_str_to_local_date_str(r["createdDate"]) for r in racelog]
+        unrecorded = self._leading_unrecorded(dates, latest_war_date)
 
-        for i in range(racelog_unrecorded_offset, -1, -1):
-            race = racelog[i]
-            latest_updated_col_offset = self.__ensure_empty_last_col(latest_updated_col_offset)
-            self.__fill_race(latest_updated_col_offset - 1, race)
-            latest_updated_col_offset -= 1
+        # Fill oldest-first so each missing war lands in its own chronological column.
+        for race in reversed(racelog[:unrecorded]):
+            col_index = self.__insert_race_column(race)
+            self.__fill_race(col_index, race)
 
         return True
 
-    def __fill_race(self, col_offset: int, race: dict[str, Any]) -> None:
-        """Fill specified race records to the target column.
+    def __insert_race_column(self, race: dict[str, Any]) -> int:
+        """Insert an empty column at the chronological position for `race` and return
+        its index, keeping the last column empty."""
+        sheet = self.__check_sheet()
+        race_date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
+        record_columns = self._record_columns(sheet.get_row(1, returnas="cells"))
+        # Append after the right-most record, or at the first data column on a fresh sheet.
+        append_col = record_columns[-1][0] + 1 if record_columns else 5
+        target_col = self._insert_col_for_date(record_columns, race_date, append_col)
+        sheet.insert_cols(target_col - 1, number=1, values=None, inherit=False)
+        return target_col
+
+    def __fill_race(self, col_index: int, race: dict[str, Any]) -> None:
+        """Fill the given race's records into the target column.
 
         Parameters
         ----------
-        col_offset : int
-            Offset of the target column from the last column.
+        col_index : int
+            1-based index of the target column.
         race: Object
             The race from the racelog to be recorded
         """
         sheet = self.__check_sheet()
-        col_index = sheet.cols - col_offset
         tag_cells = self.__get_tag_cells()
 
         # Get info from race
