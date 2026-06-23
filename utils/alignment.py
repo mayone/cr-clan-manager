@@ -46,14 +46,8 @@ def is_wide(ch: str) -> bool:
     """
     res = unicodedata.east_asian_width(ch)
     if res == "A":
-        if _platform.startswith("linux"):
-            return False
-        elif _platform.startswith("win") or _platform.startswith("cygwin"):
-            return True
-        elif _platform.startswith("darwin"):
-            return False
-        else:
-            return False
+        # Ambiguous-width characters render wide only on Windows terminals
+        return _platform.startswith(("win", "cygwin"))
     return res in ("F", "W")
 
 
@@ -101,14 +95,14 @@ def get_width(string: str) -> int:
     string = remove_ansi_escape(string)
 
     width = 0
-    for i in range(len(string)):
+    for i, ch in enumerate(string):
         if (
-            unicodedata.combining(string[i])
-            or _VARIATION_SELECTOR_RE.match(string[i])
-            or _ZERO_WIDTH_RE.match(string[i])
+            unicodedata.combining(ch)
+            or _VARIATION_SELECTOR_RE.match(ch)
+            or _ZERO_WIDTH_RE.match(ch)
         ):
             ch_width = 1 if i == 0 else 0
-        elif is_wide(string[i]):
+        elif is_wide(ch):
             ch_width = 2
         else:
             ch_width = 1

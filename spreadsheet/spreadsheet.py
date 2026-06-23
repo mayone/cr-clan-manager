@@ -35,6 +35,13 @@ class RecordGenre(IntEnum):
     DONATE = auto()
 
 
+# Note prefixes written on record-column headers. Shared by both readers and writers
+# so the read/write prefixes can never drift apart.
+WAR_NOTE_PREFIX = "結算日"
+DONATE_NOTE_PREFIX = "統計日"
+RECORD_NOTE_GENRES = {WAR_NOTE_PREFIX: RecordGenre.WAR, DONATE_NOTE_PREFIX: RecordGenre.DONATE}
+
+
 class Sheet:
     def __init__(self, index: int = 0) -> None:
         self.__sheet = self.__open_sheet(index)
@@ -87,6 +94,25 @@ class Sheet:
 
         return tag_cells
 
+    def __ensure_empty_last_col(self, col_offset: int) -> int:
+        """Insert a column before the last one when it is occupied, keeping the last column empty.
+
+        Parameters
+        ----------
+        col_offset : int
+            Offset of the latest record column from the last column.
+
+        Returns
+        -------
+        col_offset : int
+            Updated offset after the potential insertion.
+        """
+        sheet = self.__check_sheet()
+        if col_offset <= 1:
+            sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
+            col_offset += 1
+        return col_offset
+
     def __sort_by_trophies(self, last_updated_row_index: int = 51) -> None:
         sheet = self.__check_sheet()
 
@@ -130,37 +156,31 @@ class Sheet:
             print("Error: Failed to retrieve members. 'members' is None.")
             return
 
-        sheet_tags = []
-        insertable_row_index = tag_cells[len(tag_cells) - 1].row + 1
+        sheet_tags = set()
+        insertable_row_index = tag_cells[-1].row + 1
         last_inserted_row_index = 0
 
         # Put none exist members in list
         member_to_remove = []
         for tag_cell in tag_cells:
             tag = tag_cell.value
-            try:
-                member = members[tag]
-            except KeyError:
+            if tag not in members:
                 name = tag_cell.neighbour("left").value
                 member_to_remove.append((name, tag_cell.row))
                 continue
-            sheet_tags.append(tag)
+            sheet_tags.add(tag)
 
         # Remove none exist members in reversed order
-        for member in reversed(member_to_remove):
-            name = member[0]
-            row_index = member[1]
+        for name, row_index in reversed(member_to_remove):
             # Insert empty row in the bottom
-            sheet.insert_rows(tag_cells[len(tag_cells) - 1].row)
+            sheet.insert_rows(tag_cells[-1].row)
             sheet.delete_rows(row_index)
             print(f"Member: {align(name, length=NAME_MAX_LENGTH)} is removed")
             insertable_row_index -= 1
 
         # Add new members
-        tags = members.keys()
-        for tag in tags:
+        for tag, member in members.items():
             if tag not in sheet_tags:
-                member = members[tag]
                 row_to_fill = sheet.get_row(insertable_row_index, returnas="cells")
                 row_to_fill[0].value = member["name"]
                 row_to_fill[1].value = tag
@@ -210,8 +230,9 @@ class Sheet:
         else:
             print("Trophies are already up to date")
 
+    @staticmethod
     def _find_latest_record(
-        self, header_cells: list[Any], genre_keywords: dict[str, RecordGenre]
+        header_cells: list[Any], genre_keywords: dict[str, RecordGenre], total_cols: int
     ) -> tuple[RecordGenre, str | None, int]:
         """Scan header cells from right to find the latest record metadata.
 
@@ -220,89 +241,133 @@ class Sheet:
         header_cells : list
             Row 1 cells from the sheet.
         genre_keywords : dict
-            Mapping of note prefix -> RecordGenre, e.g. {"結算日": WAR, "統計日": DONATE}.
+            Mapping of note prefix -> RecordGenre, e.g. RECORD_NOTE_GENRES.
+        total_cols : int
+            Total column count of the sheet, used to compute the column offset.
 
         Returns
         -------
         (genre, date, col_offset) : tuple
         """
-        sheet = self.__check_sheet()
         for header_cell in reversed(header_cells):
             if header_cell.note is not None:
                 try:
                     parts = header_cell.note.split()
                     genre = genre_keywords.get(parts[0], RecordGenre.UNKNOWN)
                     if genre != RecordGenre.UNKNOWN:
-                        return genre, parts[1], sheet.cols - header_cell.col
+                        return genre, parts[1], total_cols - header_cell.col
                 except (IndexError, AttributeError):
                     continue
         return RecordGenre.UNKNOWN, None, 0
 
+    @staticmethod
+    def _record_columns(header_cells: list[Any]) -> list[tuple[int, RecordGenre, str]]:
+        """Extract dated war/donation columns from the header row.
+
+        Returns
+        -------
+        list of (col_index, genre, date) in left-to-right column order, one entry per
+        column whose note marks a war ("結算日") or donation ("統計日") record.
+        """
+        columns = []
+        for cell in header_cells:
+            note = cell.note
+            if not note:
+                continue
+            parts = note.split()
+            genre = RECORD_NOTE_GENRES.get(parts[0]) if parts else None
+            if genre is None:
+                continue
+            try:
+                columns.append((cell.col, genre, parts[1]))
+            except IndexError:
+                continue
+        return columns
+
+    @staticmethod
+    def _latest_war_date(record_columns: list[tuple[int, RecordGenre, str]]) -> str:
+        """Date of the right-most war record, or "00000000" when none exists.
+
+        Donations are intentionally ignored so a recent donation cannot block the
+        back-fill of older, still-unrecorded wars.
+        """
+        latest = "00000000"
+        for _col, genre, date in record_columns:
+            if genre == RecordGenre.WAR:
+                latest = date
+        return latest
+
+    @staticmethod
+    def _leading_unrecorded(dates: list[str], latest_war_date: str) -> int:
+        """Count the leading races (racelog is newest-first) that are newer than the
+        latest recorded war, i.e. the wars not yet written to the sheet."""
+        count = 0
+        for date in dates:
+            if date > latest_war_date:
+                count += 1
+            else:
+                break
+        return count
+
+    @staticmethod
+    def _insert_col_for_date(
+        record_columns: list[tuple[int, RecordGenre, str]], date: str, append_col: int
+    ) -> int:
+        """Column index at which to insert a war column dated `date` so columns stay
+        ordered by date (the existing column at that index shifts right). Returns
+        `append_col` when `date` is newer than every existing record."""
+        for col, _genre, col_date in record_columns:
+            if col_date > date:
+                return col
+        return append_col
+
     def update_racelog(self) -> bool | None:
         sheet = self.__check_sheet()
-        header_cells = sheet.get_row(1, returnas="cells")
-
-        genre, latest_updated_date, latest_updated_col_offset = self._find_latest_record(
-            header_cells, {"結算日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
-        )
-        latest_updated_genre = genre
-
-        if latest_updated_genre == RecordGenre.UNKNOWN:
-            latest_updated_col_offset = sheet.cols - 4
-        if latest_updated_date is None:
-            latest_updated_date = "00000000"
-
         racelog = self.__crapi.get_racelog()
-        racelog_unrecorded_offset = -1
 
         if not racelog:
             print("Error: Failed to retrieve racelog. 'racelog' is None.")
             return
 
-        # Set index to the unrecorded war in racelog
-        for i, race in enumerate(racelog):
-            date = datetime_wrapper.get_date_str(
-                datetime_wrapper.utc_to_local(
-                    datetime_wrapper.datetime_from_str(race["createdDate"])
-                )
-            )
-            if date > latest_updated_date or (
-                date == latest_updated_date and latest_updated_genre == RecordGenre.DONATE
-            ):
-                racelog_unrecorded_offset = i
-            else:
-                break
+        header_cells = sheet.get_row(1, returnas="cells")
+        latest_war_date = self._latest_war_date(self._record_columns(header_cells))
+        dates = [datetime_wrapper.utc_str_to_local_date_str(r["createdDate"]) for r in racelog]
+        unrecorded = self._leading_unrecorded(dates, latest_war_date)
 
-        for i in range(racelog_unrecorded_offset, -1, -1):
-            race = racelog[i]
-            # Keep the last column empty
-            if latest_updated_col_offset <= 1:
-                # Insert and inherit from the last column
-                sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
-                latest_updated_col_offset += 1
-            self.__fill_race(latest_updated_col_offset - 1, race)
-            latest_updated_col_offset -= 1
+        # Fill oldest-first so each missing war lands in its own chronological column.
+        for race in reversed(racelog[:unrecorded]):
+            col_index = self.__insert_race_column(race)
+            self.__fill_race(col_index, race)
 
         return True
 
-    def __fill_race(self, col_offset: int, race: dict[str, Any]) -> None:
-        """Fill specified race records to the target column.
+    def __insert_race_column(self, race: dict[str, Any]) -> int:
+        """Insert an empty column at the chronological position for `race` and return
+        its index, keeping the last column empty."""
+        sheet = self.__check_sheet()
+        race_date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
+        record_columns = self._record_columns(sheet.get_row(1, returnas="cells"))
+        # Append after the right-most record, or at the first data column on a fresh sheet.
+        append_col = record_columns[-1][0] + 1 if record_columns else 5
+        target_col = self._insert_col_for_date(record_columns, race_date, append_col)
+        sheet.insert_cols(target_col - 1, number=1, values=None, inherit=False)
+        return target_col
+
+    def __fill_race(self, col_index: int, race: dict[str, Any]) -> None:
+        """Fill the given race's records into the target column.
 
         Parameters
         ----------
-        col_offset : int
-            Offset of the target column from the last column.
+        col_index : int
+            1-based index of the target column.
         race: Object
             The race from the racelog to be recorded
         """
         sheet = self.__check_sheet()
-        col_index = sheet.cols - col_offset
         tag_cells = self.__get_tag_cells()
 
         # Get info from race
-        race_end_date = datetime_wrapper.get_date_str(
-            datetime_wrapper.utc_to_local(datetime_wrapper.datetime_from_str(race["createdDate"]))
-        )
+        race_end_date = datetime_wrapper.utc_str_to_local_date_str(race["createdDate"])
         standings = race["standings"]
         participants = None
         for standing in standings:
@@ -320,25 +385,21 @@ class Sheet:
 
         header_cell = sheet.cell((1, col_index))
         header_cell.value = f"部落戰 {season_id}-{week_idx}"
-        header_cell.note = "結算日 " + race_end_date
+        header_cell.note = f"{WAR_NOTE_PREFIX} {race_end_date}"
         header_cell.color = Color.pink
 
         if not participants:
             return
 
         # Fill race records into sheet
+        tag_to_row = {tag_cell.value: tag_cell.row for tag_cell in tag_cells}
         for i, p in enumerate(tqdm(participants)):
             tag = p["tag"]
-            row_index = 0
-            for tag_cell in tag_cells:
-                if tag == tag_cell.value:
-                    row_index = tag_cell.row
-                    break
-            if row_index:
-                cell = sheet.cell((row_index, col_index))
-            else:
+            row_index = tag_to_row.get(tag)
+            if row_index is None:
                 print(f"Warning: member tag {tag} does not exist")
                 continue
+            cell = sheet.cell((row_index, col_index))
 
             fame = p["fame"]
             decks = p["decksUsed"]
@@ -369,9 +430,7 @@ class Sheet:
         header_cells = sheet.get_row(1, returnas="cells")
 
         latest_updated_genre, latest_updated_date, latest_updated_col_offset = (
-            self._find_latest_record(
-                header_cells, {"發起日": RecordGenre.WAR, "統計日": RecordGenre.DONATE}
-            )
+            self._find_latest_record(header_cells, RECORD_NOTE_GENRES, sheet.cols)
         )
 
         now = datetime_wrapper.get_now()
@@ -388,18 +447,14 @@ class Sheet:
             # Update the existed record
             col_index = sheet.cols - latest_updated_col_offset
         else:
-            # Keep the last column empty
-            if latest_updated_col_offset <= 1:
-                # Insert and inherit from the last column
-                sheet.insert_cols(sheet.cols - 1, number=1, values=None, inherit=False)
-                latest_updated_col_offset += 1
+            latest_updated_col_offset = self.__ensure_empty_last_col(latest_updated_col_offset)
             # Record in new column
             col_offset = latest_updated_col_offset - 1
             col_index = sheet.cols - col_offset
 
         header_cell = sheet.cell((1, col_index))
         header_cell.value = "捐贈 " + date
-        header_cell.note = "統計日 " + full_date
+        header_cell.note = f"{DONATE_NOTE_PREFIX} {full_date}"
         header_cell.color = Color.skin
 
         print(f"Updating donations {date}")

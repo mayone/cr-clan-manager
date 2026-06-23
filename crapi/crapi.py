@@ -16,14 +16,18 @@ API = api.API
 ENV_PATH = ".env"
 
 
+def _load_api_config() -> dict[str, Any]:
+    with importlib.resources.open_text("config", "crapi.json") as api_file:
+        return json.load(api_file)
+
+
 class CRAPI(metaclass=singleton.Singleton):
     def __init__(self) -> None:
         self._configure()
 
     def _configure(self) -> None:
         load_dotenv(override=True)
-        with importlib.resources.open_text("config", "crapi.json") as api_file:
-            api_config = json.load(api_file)
+        api_config = _load_api_config()
         uri = api_config["api_uri"] or ""
         ver = api_config["version"] or "v1"
         jwt = os.environ.get("CRAPI_TOKEN") or ""
@@ -49,8 +53,7 @@ class CRAPI(metaclass=singleton.Singleton):
         return send_query()
 
     def refresh_token(self) -> None:
-        with importlib.resources.open_text("config", "crapi.json") as api_file:
-            api_config = json.load(api_file)
+        api_config = _load_api_config()
         uri = api_config["dev_uri"] or ""
         email = os.environ.get("CRAPI_EMAIL")
         password = os.environ.get("CRAPI_PASSWORD")
@@ -108,29 +111,21 @@ class CRAPI(metaclass=singleton.Singleton):
         return members
 
     def get_members_dic(self) -> dict[str, dict[str, Any]]:
-        """Get members of the clan.
+        """Get members of the clan, enriched with best trophies.
 
         Returns
         -------
         members : dict
             Use tag as key, member as value.
         """
-        query = f"/clans/{quote_plus(self.__clan_tag)}/members"
-        try:
-            resp = self.__send_req(query)
-            members = resp["items"] if resp else None
-        except (TypeError, KeyError):
-            print("Error: Unable to retrieve member list")
-            return {}
-
+        members = self.get_members()
         if not members:
             return {}
-        hash_members: dict[str, dict[str, Any]] = {}
 
+        hash_members: dict[str, dict[str, Any]] = {}
         for member in members:
             tag = member["tag"]
-            query = f"/players/{quote_plus(tag)}"
-            player = self.__send_req(query)
+            player = self.__send_req(f"/players/{quote_plus(tag)}")
             if player:
                 member["bestTrophies"] = player["bestTrophies"]
             hash_members[tag] = member
